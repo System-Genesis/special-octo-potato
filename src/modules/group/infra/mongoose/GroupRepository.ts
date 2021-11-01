@@ -43,7 +43,6 @@ export class GroupRepository implements IGroupRepository {
     */
     const session = await this._model.startSession();
     try {
-      session.startTransaction();
       const [raw, ancestors, childrenNames] = await Promise.all([
         this._model.findById(groupId.toString()).lean(),
         this.calculateAncestors(groupId, session),
@@ -56,10 +55,8 @@ export class GroupRepository implements IGroupRepository {
           childrenNames: childrenNames || [],
         });
       }
-      // await session.commitTransaction();
     } catch (error) {
       groupOrNull = null;
-      // await session.abortTransaction();
     } finally {
       session.endSession();
     }
@@ -75,15 +72,12 @@ export class GroupRepository implements IGroupRepository {
     */
     const session = await this._model.startSession();
     try {
-      session.startTransaction();
       const raw = await this._model.findOne({ directGroup: parentId.toString(), name: name }).lean();
       if (!!raw) {
         groupIdOrNull = GroupId.create(raw._id);
       }
-      await session.commitTransaction();
     } catch (error) {
       groupIdOrNull = null;
-      await session.abortTransaction();
     } finally {
       session.endSession();
     }
@@ -127,7 +121,6 @@ export class GroupRepository implements IGroupRepository {
     let session = await this._model.startSession();
 
     try {
-      session.startTransaction();
       const existingGroup = await this._model.findOne({ _id: group.groupId.toString() });
       if (existingGroup) {
         const updateOp = await this._model
@@ -147,11 +140,8 @@ export class GroupRepository implements IGroupRepository {
         await this._model.create([persistanceState], { session });
         result = ok(undefined);
       }
-      await session.commitTransaction();
     } catch (error) {
       result = err(MongooseError.GenericError.create(error));
-
-      await session.abortTransaction();
     } finally {
       session.endSession();
     }

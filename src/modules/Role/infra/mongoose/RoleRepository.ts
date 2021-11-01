@@ -64,7 +64,6 @@ export class RoleRepository implements IRoleRepository {
     let session = await this._model.startSession();
 
     try {
-      session.startTransaction();
 
       const existingRole = await this._model.findOne({ roleId: role.roleId.toString() });
 
@@ -86,11 +85,9 @@ export class RoleRepository implements IRoleRepository {
         result = ok(undefined);
       }
 
-      await session.commitTransaction();
     } catch (error) {
       result = err(MongooseError.GenericError.create(error));
 
-      await session.abortTransaction();
     } finally {
       session.endSession();
     }

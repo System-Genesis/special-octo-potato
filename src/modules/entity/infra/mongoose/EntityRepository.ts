@@ -52,7 +52,6 @@ export class EntityRepository implements IEntityRepository {
     let session = await this._model.startSession();
 
     try {
-      session.startTransaction();
       const existingEntity = await this._model
         .findOne({
           _id: entity.entityId.toString(),
@@ -74,11 +73,8 @@ export class EntityRepository implements IEntityRepository {
         await this._model.create([persistanceState], { session });
         result = ok(undefined);
       }
-      await session.commitTransaction();
     } catch (error) {
       result = err(MongooseError.GenericError.create(error));
-
-      await session.abortTransaction();
     } finally {
       session.endSession();
     }
