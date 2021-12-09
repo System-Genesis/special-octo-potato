@@ -11,7 +11,7 @@ volume:
   - name: write-service-volume
     mountPath: /config
     secretName: azure-secret 
-    shareName: system-genesis/write-service/
+    shareName: system-genesis/write-service
     type: azurefile 
     
 config:
