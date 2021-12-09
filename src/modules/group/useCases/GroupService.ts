@@ -1,3 +1,4 @@
+import { CannotDeleteRoot } from './../domain/errors/CannotDeleteRoot';
 import { RenameGroupDTO } from './dto/RenameGroupDTO';
 import { RenameRootError } from './../domain/errors/RenameRootError';
 import { GroupRepository } from '../repository/GroupRepository';
@@ -190,8 +191,22 @@ export class GroupService {
     if (!!role && !!role.roleId) {
       return err(HasRolesAttachedError.create(id));
     }
-    return (await this.groupRepository.delete(groupId)).mapErr((err) =>
+    const parentId = group.parentId;
+    if (!parentId) {
+      return err(CannotDeleteRoot.create(id));
+    }
+    const parent = await this.groupRepository.getByGroupId(parentId);
+    if (!parent) {
+      return err(AppError.ResourceNotFound.create(id, 'Group'));
+    }
+    parent.deleteChild();
+    const updateGroupRes = (await this.groupRepository.delete(groupId)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
+    if (updateGroupRes.isErr()) return updateGroupRes;
+    const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) =>
+      AppError.RetryableConflictError.create(err.message)
+    );
+    return saveParentRes;
   }
 }

@@ -164,19 +164,8 @@ export class GroupRepository implements IGroupRepository {
           result = err(AggregateVersionError.create(group.fetchedVersion));
         }
       } else {
-        const parentGroup = await this._model.findOne({_id: group.parentId?.toString() })
-        if (parentGroup && parentGroup.isLeaf) {
-            const updateParentOpt = await this._model.updateOne({_id: group.parentId?.toString()},{isLeaf:false}).session(session)
-            if(updateParentOpt.n === 0){
-              result = err(AggregateVersionError.create(group.fetchedVersion));
-            }else{
-              await this._model.create([persistanceState], { session });
-              result = ok(undefined);
-            }          
-        }else{
-          await this._model.create([persistanceState], { session });
-          result = ok(undefined);
-        }
+        await this._model.create([persistanceState], { session });
+        result = ok(undefined);
       }
       await session.commitTransaction();
     } catch (error) {
