@@ -169,11 +169,10 @@ export class Group
   }
 
   // TODO: what best practice here?
-  public deleteChild(): Result<void, void> {
+  public deleteChild() {
     if (this._childrenNames.values.length === 1) {
       this._isLeaf = true;
     }
-    return ok(undefined);
   }
 
   public createRole(roleId: RoleId, props: Omit<RoleState, 'directGroup' | 'digitalIdentityUniqueId'>) {
