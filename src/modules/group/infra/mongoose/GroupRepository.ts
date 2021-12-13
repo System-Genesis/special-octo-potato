@@ -124,12 +124,15 @@ export class GroupRepository implements IGroupRepository {
             depthField: 'searchDepth',
           },
         },
-        { $unwind: '$ancestors' },
-        { $sort: { searchDepth: 1 } },
-        { $project: { _id: 1 } }, // TODO: does it work?
+        { $unwind: "$ancestors" },
+        { $sort: { 'ancestors.searchDepth': 1 } },
+        { $project: { _id: 0 ,ancestors: 1 } }, // TODO: does it work?
       ])
       .session(session || null);
-    return res.map((doc) => doc._id) as Types.ObjectId[];
+      //TODO: instead of getting ancestors directly somehow via lookup?
+
+      //TODO: better way to map
+    return res.map((doc : any) => doc.ancestors._id) as Types.ObjectId[];
   }
 
   private async calculateChildrenNames(groupId: GroupId, session?: ClientSession) {

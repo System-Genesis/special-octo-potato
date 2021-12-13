@@ -91,6 +91,7 @@ export class GroupService {
     const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
+    if (saveParentRes.isErr()) return err(AppError.UnexpectedError.create(saveParentRes.error.message));
   }
   // TODO: use saveParentRes or do it in some other way?
   return saveGroupRes;
