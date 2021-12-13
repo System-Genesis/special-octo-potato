@@ -163,8 +163,16 @@ export class Group
       },
       { isNew: true }
     );
+    this._isLeaf = false;
     child.moveToParent(this);
     return ok(child);
+  }
+
+  // TODO: what best practice here?
+  public deleteChild() {
+    if (this._childrenNames.values.length === 1) {
+      this._isLeaf = true;
+    }
   }
 
   public createRole(roleId: RoleId, props: Omit<RoleState, 'directGroup' | 'digitalIdentityUniqueId'>) {

@@ -1,3 +1,4 @@
+import { CannotDeleteRoot } from './../domain/errors/CannotDeleteRoot';
 import { RenameGroupDTO } from './dto/RenameGroupDTO';
 import { RenameRootError } from './../domain/errors/RenameRootError';
 import { GroupRepository } from '../repository/GroupRepository';
@@ -38,10 +39,11 @@ export class GroupService {
       return err(source.error);
     }
     let group: Result<Group, DuplicateChildrenError>;
+    let parent = null;
     const groupId = this.groupRepository.generateGroupId();
     if (has(createDTO, 'directGroup')) {
       const parentId = GroupId.create(createDTO.directGroup);
-      const parent = await this.groupRepository.getByGroupId(parentId);
+      parent = await this.groupRepository.getByGroupId(parentId);
       if (!parent) {
         return err(AppError.ResourceNotFound.create(createDTO.directGroup, 'group'));
       }
@@ -78,11 +80,22 @@ export class GroupService {
       );
     }
 
-    return (await this.groupRepository.save(group.value))
-      .map(() => groupToDTO(group._unsafeUnwrap())) // TODO why the fuck TS doesn't recognize the correct type
-      .mapErr((err) => {
-        return AppError.RetryableConflictError.create(err.message)
-      });
+  const saveGroupRes = (await this.groupRepository.save(group.value))
+  .map(() => groupToDTO(group._unsafeUnwrap())) // TODO why the fuck TS doesn't recognize the correct type
+  .mapErr((err) => {
+    return AppError.RetryableConflictError.create(err.message)
+  });
+
+  if (saveGroupRes.isErr()) return saveGroupRes;
+  if(parent) {
+    const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) =>
+      AppError.RetryableConflictError.create(err.message)
+    );
+    if (saveParentRes.isErr()) return err(AppError.UnexpectedError.create(saveParentRes.error.message));
+  }
+  // TODO: use saveParentRes or do it in some other way?
+  return saveGroupRes;
+
   }
   // async updateGroup(updateGroupDTO: UpdateGroupDTO): Promise<Result<GroupResultDTO, AppError.ResourceNotFound | AppError.RetryableConflictError>> {
   //   const groupId = GroupId.create(updateGroupDTO.id);
@@ -190,8 +203,22 @@ export class GroupService {
     if (!!role && !!role.roleId) {
       return err(HasRolesAttachedError.create(id));
     }
-    return (await this.groupRepository.delete(groupId)).mapErr((err) =>
+    const parentId = group.parentId;
+    if (!parentId) {
+      return err(CannotDeleteRoot.create(id));
+    }
+    const parent = await this.groupRepository.getByGroupId(parentId);
+    if (!parent) {
+      return err(AppError.ResourceNotFound.create(id, 'Group'));
+    }
+    parent.deleteChild();
+    const deleteGroupRes = (await this.groupRepository.delete(groupId)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
+    if (deleteGroupRes.isErr()) return deleteGroupRes;
+    const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) =>
+      AppError.RetryableConflictError.create(err.message)
+    );
+    return saveParentRes;
   }
 }
