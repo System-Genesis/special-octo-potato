@@ -45,7 +45,10 @@ export class EntityController {
    * PUT /entities/:id/digitalIdentity/:uniqueId
    */
   connectDigitalIdentity = async (req: Request, res: Response) => {
-    const { error, value: dto } = ConnectDigitalIdentitySchema.validate(req.params);
+    const { error, value: dto } = ConnectDigitalIdentitySchema.validate({
+      ...req.body,
+      ...req.params
+    });
     if (!!error) {
       return ResponseHandler.clientError(res, error.message);
     }

@@ -1,3 +1,5 @@
+import { connect } from './../../../shared/infra/mongoose/connection';
+import config from 'config';
 import { IdentityCard } from './../domain/IdentityCard';
 import { entityRepository } from './../repository/index';
 import { EntityRepository } from '../repository/EntityRepository';
@@ -176,8 +178,12 @@ export class EntityService {
     if (!di) {
       return err(AppError.ResourceNotFound.create(connectDTO.uniqueId, 'digital identity'));
     }
-    // connect the entityy to the digital identity
-    const res = di.connectToEntity(entity);
+    // check if source ads require for upn
+    if (di.source.isUpnSource() && !has(connectDTO, 'userPrincipalName') ) {
+      return err(AppError.ValueValidationError.create('digital identity must have userPrincipalName in order to be connected'));
+    }
+    // connect the entity to the digital identity
+    const res = di.connectToEntity(entity, connectDTO.userPrincipalName);
 
     if (res.isErr()) {
       return err(AppError.LogicError.create(res.error.message));;
@@ -228,8 +234,8 @@ export class EntityService {
     // disconnect the digital identity to the entity
     // disconnect the entityy to the digital identity
     di.disconnectEntity();
-
-    const saveDiRes = (await this.diRepository.removeFields(di, ['entityId'])).mapErr((err) =>
+    // TODO: do it in a better way already
+    const saveDiRes = (await this.diRepository.removeFields(di, ['entityId', 'userPrincipalName'])).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
     if (saveDiRes.isErr()) return saveDiRes;

@@ -1,8 +1,9 @@
 {
   "valueObjects": {
     "source": {
-      "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name"], 
+      "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"], 
       "strongSources": ["oa_name"],
+      "upnSource": "ads_name",
       "weakSource": ["mir_name"],
       "primaryMap": {
         "ads": "sf_name",
