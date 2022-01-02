@@ -27,6 +27,7 @@ const schema = new Schema<DigitalIdentityDoc, Model<DigitalIdentityDoc>, Digital
   timestamps: true,
 });
 
+schema.index({ entityId: 1 })
 // schema.index({ source: 1 })
 // schema.index({ mail: 1 })
 // schema.index({ isRoleAttachable: 1 })
