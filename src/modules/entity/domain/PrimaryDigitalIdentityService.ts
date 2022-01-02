@@ -10,6 +10,7 @@ import { IConnectedDI } from "./ConnectedDI";
 import { wrapResult } from "../../../utils/resultUtils";
 // TODO: inject config in another way
 const STRONG_SOURCES: string[] = config.get('valueObjects.source.strongSources');
+const WEAK_SOURCES: string[] = config.get('valueObjects.source.weakSources');
 const PRIMARY_MAP: object = config.get('valueObjects.source.primaryMap');
 
 export class PrimaryDigitalIdentityService { // TODO: should be "static" class
@@ -25,6 +26,10 @@ export class PrimaryDigitalIdentityService { // TODO: should be "static" class
     return !!akaUnit ?
       digitalIdentity.source.value === PrimaryDigitalIdentityService._primarySourceMap.get(akaUnit)?.value :
       false;
+  }
+
+  static isWeakSource(digitalIdentity: IConnectedDI) {
+    return WEAK_SOURCES.includes(digitalIdentity.source.value);
   }
 
   // public setEntityPrimaryDigitalIdentity(

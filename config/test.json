@@ -3,6 +3,7 @@
     "source": {
       "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name"], 
       "strongSources": ["oa_name"],
+      "weakSource": ["mir_name"],
       "primaryMap": {
         "ads": "sf_name",
         "unit2": "es"
