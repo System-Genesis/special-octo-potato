@@ -6,7 +6,7 @@ export interface DigitalIdentityDoc {
   type: string;
   source: string; // enum?
   mail?: string; 
-  userPrincipalName?: string;
+  upn?: string;
   isRoleAttachable?: boolean;
   entityId?: Types.ObjectId;
   version: number;
@@ -19,7 +19,7 @@ const schema = new Schema<DigitalIdentityDoc, Model<DigitalIdentityDoc>, Digital
     type: String,
     enum: [ DigitalIdentityTypes.DomainUser, DigitalIdentityTypes.VirtualUser ],
   },
-  userPrincipalName: String,
+  upn: String,
   source: String,
   mail: String,
   isRoleAttachable: Boolean,

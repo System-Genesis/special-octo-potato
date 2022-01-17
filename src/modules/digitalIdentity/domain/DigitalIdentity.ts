@@ -33,7 +33,7 @@ export interface DigitalIdentityState {
   mail?: Mail; // use value Object
   entityId?: EntityId;
   canConnectRole?: boolean;
-  userPrincipalName?: string;
+  upn?: string;
 }
 
 export interface DigitalIdentityRepresent {
@@ -47,7 +47,7 @@ export class DigitalIdentity extends AggregateRoot {
   private _source: Source;
   private _canConnectRole: boolean;
   private _entityId?: EntityId;
-  private _userPrincipalName?: string;
+  private _upn?: string;
 
   private constructor(id: DigitalIdentityId, props: DigitalIdentityState, opts: CreateOpts) {
     super(id, opts);
@@ -73,14 +73,14 @@ export class DigitalIdentity extends AggregateRoot {
     this.markModified();
   }
 
-  connectToEntity(entity: Entity, userPrincipalName?: string): Err<unknown, CannotConnectAlreadyConnected> | Ok<undefined, unknown> {
+  connectToEntity(entity: Entity, upn?: string): Err<unknown, CannotConnectAlreadyConnected> | Ok<undefined, unknown> {
     if (this._entityId) {
       return err(CannotConnectAlreadyConnected.create(this.uniqueId.toString()));
     }
     this._entityId = entity.entityId;
     // TODO: perhaps required upn error should be here with source validation?
-    if (userPrincipalName) {
-      this._userPrincipalName = userPrincipalName;
+    if (upn) {
+      this._upn = upn;
     }
     this.markModified();
     return ok(undefined);
@@ -94,7 +94,7 @@ export class DigitalIdentity extends AggregateRoot {
       return err(CannotDisconnectUnconnected.create(this.uniqueId.toString()));
     }
     this._entityId = undefined;
-    this._userPrincipalName = undefined;
+    this._upn = undefined;
     this.markModified();
     return ok(undefined);
   }
@@ -155,8 +155,8 @@ export class DigitalIdentity extends AggregateRoot {
     return this._entityId;
   }
 
-  get userPrincipalName() {
-    return this._userPrincipalName;
+  get upn() {
+    return this._upn;
   }
 
 

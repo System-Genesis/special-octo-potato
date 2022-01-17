@@ -179,11 +179,11 @@ export class EntityService {
       return err(AppError.ResourceNotFound.create(connectDTO.uniqueId, 'digital identity'));
     }
     // check if source ads require for upn
-    if (di.source.isUpnSource() && !has(connectDTO, 'userPrincipalName') ) {
-      return err(AppError.ValueValidationError.create('digital identity must have userPrincipalName in order to be connected'));
+    if (di.source.isUpnSource() && !has(connectDTO, 'upn') ) {
+      return err(AppError.ValueValidationError.create('digital identity must have upn in order to be connected'));
     }
     // connect the entity to the digital identity
-    const res = di.connectToEntity(entity, connectDTO.userPrincipalName);
+    const res = di.connectToEntity(entity, connectDTO.upn);
 
     if (res.isErr()) {
       return err(AppError.LogicError.create(res.error.message));;
@@ -235,7 +235,7 @@ export class EntityService {
     // disconnect the entityy to the digital identity
     di.disconnectEntity();
     // TODO: do it in a better way already
-    const saveDiRes = (await this.diRepository.removeFields(di, ['entityId', 'userPrincipalName'])).mapErr((err) =>
+    const saveDiRes = (await this.diRepository.removeFields(di, ['entityId', 'upn'])).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
     if (saveDiRes.isErr()) return saveDiRes;
