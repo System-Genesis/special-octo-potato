@@ -4,10 +4,10 @@
       "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"], 
       "strongSources": ["oa_name"],
       "upnSource": "ads_name",
-      "weakSource": ["mir_name"],
+      "weakSources": ["mir_name"],
       "primaryMap": {
-        "ads": "sf_name",
-        "unit2": "es"
+        "sf1": "sf_name",
+        "es1": "es_name"
       }
     },
     "rank": {

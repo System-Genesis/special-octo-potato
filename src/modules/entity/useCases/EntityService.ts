@@ -117,6 +117,7 @@ export class EntityService {
         return err(mobilePhone.error);
       }
     }
+    
     if (has(createEntityDTO, 'pictures') && has(createEntityDTO.pictures, 'profile')) {
       const {
         meta: { updatedAt, format, path },
@@ -274,7 +275,7 @@ export class EntityService {
     if (!entity) {
       return err(AppError.ResourceNotFound.create(updateDTO.entityId, 'entity'));
     }
-    const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, ...rest } = updateDTO;
+    const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, akaUnit, ...rest } = updateDTO;
     // try to update entity for each existing field in the DTO
     if (personalNumber) {
       const newPersonalNumber = PersonalNumber.create(personalNumber).mapErr(AppError.ValueValidationError.create);
@@ -357,6 +358,15 @@ export class EntityService {
         return err(newMobilePhone.error);
       }
     }
+
+    if (akaUnit) {
+      const newAkaUnit = akaUnit
+      // Need to check new primary
+      const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
+      changes.push(entity.updateDetails({ akaUnit: newAkaUnit }));
+      entity.choosePrimaryDigitalIdentity(connectedDIs);
+    }
+
     if (pictures) {
       if (pictures.profile) {
         changes.push(entity.updateProfilePicture(pictures.profile));

@@ -209,10 +209,10 @@ const ENTITY_TYPE_VALID_STATE: {
 };
 
 const SET_ONLY_ONCE_FIELDS = new Set([
-  "sex",
-  "identityCard",
-  "personalNumber",
-  "birthDate",
+  // "sex",
+  // "identityCard",
+  // "personalNumber",
+  // "birthDate",
 ] as (keyof EntityState)[]);
 
 type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
@@ -423,6 +423,7 @@ export class Entity extends AggregateRoot {
       !!primarySourceDI
     ) {
       this._state.primaryDigitalIdentityId = primarySourceDI.uniqueId;
+      return;
     }
     // connect one of the DIs
     if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
