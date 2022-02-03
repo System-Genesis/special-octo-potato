@@ -8,6 +8,7 @@ export interface EntityDoc {
   displayName?: string;
   personalNumber?: string; // use value object
   identityCard?: string;
+  employeeId?: string;
   rank?: string; //use vale object / enum
   akaUnit?: string;
   clearance?: string; // value object
@@ -42,6 +43,7 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
     displayName: String,
     personalNumber: { type: String, unique: true, sparse: true }, // use value object
     identityCard: { type: String, unique: true, sparse: true  },
+    employeeId: { type: String, unique: true, sparse: true  },
     rank: String, //use vale object / enum
     akaUnit: String,
     clearance: String, // value object

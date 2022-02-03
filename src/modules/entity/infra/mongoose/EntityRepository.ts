@@ -1,3 +1,4 @@
+import { EmployeeId } from './../../domain/EmloyeeId';
 import { EventOutbox } from './../../../../shared/infra/mongoose/eventOutbox/Outbox';
 import { Model, Types, FilterQuery, Connection } from "mongoose";
 import { EntityRepository as IEntityRepository, IhaveEntityIdentifiers, EntityIdentifier } from "../../repository/EntityRepository"
@@ -27,9 +28,10 @@ export class EntityRepository implements IEntityRepository {
   }
 
   async exists(identifier: EntityIdentifier): Promise<boolean> {
-    let identifierName: 'personalNumber' | 'identityCard' | 'goalUserId';
+    let identifierName: 'personalNumber' | 'identityCard' | 'goalUserId' | 'employeeId';
     if(identifier instanceof PersonalNumber) { identifierName = 'personalNumber'; }
     else if(identifier instanceof IdentityCard) { identifierName = 'identityCard'; }
+    else if(identifier instanceof EmployeeId) { identifierName = 'employeeId'; }
     else { identifierName = 'goalUserId'; }
     const res = await this._model.findOne({ [identifierName]: identifier.toString() }).lean().select('_id');
     return !!res;

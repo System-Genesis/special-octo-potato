@@ -1,3 +1,4 @@
+import { EmployeeId } from './EmloyeeId';
 import { isFromArray } from './../../../utils/isSomeValues';
 import config from 'config';
 import { DigitalIdentityRepresent } from "./../../digitalIdentity/domain/DigitalIdentity";
@@ -124,6 +125,7 @@ type EntityState = {
   displayName?: string; // TODO maybe remove thid field
   personalNumber?: PersonalNumber;
   identityCard?: IdentityCard;
+  employeeId?: EmployeeId;
   rank?: Rank;
   akaUnit?: string;
   clearance?: string; // value object
@@ -187,7 +189,7 @@ const ENTITY_TYPE_VALID_STATE: {
   };
 } = {
   Civilian: {
-    required: [...REQUIRED_PERSON_FIELDS, "identityCard"],
+    required: [...REQUIRED_PERSON_FIELDS],
     forbidden: ["goalUserId"],
   },
   Soldier: {
@@ -425,7 +427,7 @@ export class Entity extends AggregateRoot {
       this._state.primaryDigitalIdentityId = primarySourceDI.uniqueId;
       return;
     }
-    // connect one of the DIs
+    // connect one of the DIs // TODO: check if has hierarchy?
     if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
       this._state.primaryDigitalIdentityId = connected.find(di => !PrimaryDigitalIdentityService.isWeakSource(di))?.uniqueId;
     } 
@@ -485,6 +487,9 @@ export class Entity extends AggregateRoot {
   }
   get identityCard() {
     return this._state.identityCard;
+  }
+  get employeeId() {
+    return this._state.employeeId;
   }
   get rank() {
     return this._state.rank;

@@ -1,3 +1,5 @@
+import { EmployeeIdAlreadyExists } from './errors/EmployeeIdAlreadyExists';
+import { EmployeeId } from './../domain/EmloyeeId';
 import { connect } from './../../../shared/infra/mongoose/connection';
 import config from 'config';
 import { IdentityCard } from './../domain/IdentityCard';
@@ -46,7 +48,7 @@ export class EntityService {
       | AppError.RetryableConflictError
     >
   > {
-    let personalNumber, identityCard, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
+    let personalNumber, identityCard, employeeId, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
     // check entity type
     const entityType = castToEntityType(createEntityDTO.entityType).mapErr(AppError.ValueValidationError.create);
     if (entityType.isErr()) {
@@ -80,6 +82,15 @@ export class EntityService {
       }
       if (await this.entityRepository.exists(goalUserId.value)) {
         return err(GoalUserIdAlreadyExistsError.create(createEntityDTO.goalUserId));
+      }
+    }
+    if (has(createEntityDTO, 'employeeId')) {
+      employeeId = EmployeeId.create(createEntityDTO.employeeId).mapErr(AppError.ValueValidationError.create);
+      if (employeeId.isErr()) {
+        return err(employeeId.error);
+      }
+      if (await this.entityRepository.exists(employeeId.value)) {
+        return err(EmployeeIdAlreadyExists.create(createEntityDTO.employeeId));
       }
     }
     // extract all other existing fields
@@ -141,6 +152,7 @@ export class EntityService {
       akaUnit: createEntityDTO.akaUnit,
       personalNumber: personalNumber?.value,
       identityCard: identityCard?.value,
+      employeeId: employeeId?.value,
       goalUserId: goalUserId?.value,
       rank: rank?.value,
       serviceType: serviceType?.value,
@@ -275,7 +287,7 @@ export class EntityService {
     if (!entity) {
       return err(AppError.ResourceNotFound.create(updateDTO.entityId, 'entity'));
     }
-    const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, akaUnit, ...rest } = updateDTO;
+    const { pictures, personalNumber, identityCard, goalUserId, employeeId, serviceType, rank, sex, phone, mobilePhone, akaUnit, ...rest } = updateDTO;
     // try to update entity for each existing field in the DTO
     if (personalNumber) {
       const newPersonalNumber = PersonalNumber.create(personalNumber).mapErr(AppError.ValueValidationError.create);
@@ -311,6 +323,18 @@ export class EntityService {
           return err(GoalUserIdAlreadyExistsError.create(newGoalUserId.value.toString()));
         }
         changes.push(entity.updateDetails({ goalUserId: newGoalUserId.value }));
+      }
+    }
+    if (employeeId) {
+      const newEmployeeId = EmployeeId.create(employeeId).mapErr(AppError.ValueValidationError.create);
+      if (newEmployeeId.isErr()) {
+        return err(newEmployeeId.error);
+      }
+      if (!entity.employeeId?.equals(newEmployeeId.value)) {
+        if (await this.entityRepository.exists(newEmployeeId.value)) {
+          return err(EmployeeIdAlreadyExists.create(newEmployeeId.value.toString()));
+        }
+        changes.push(entity.updateDetails({ employeeId: newEmployeeId.value }));
       }
     }
     if (serviceType) {

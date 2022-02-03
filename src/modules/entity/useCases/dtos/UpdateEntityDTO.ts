@@ -7,6 +7,8 @@ export type UpdateEntityDTO = { entityId: string } & Partial<{
   lastName: string;
   personalNumber: string;
   identityCard: string;
+  // TODO: should be in update?
+  employeeId: string;
   rank: string;
   akaUnit: string;
   clearance: string;
