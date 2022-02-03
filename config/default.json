@@ -5,6 +5,7 @@
       "strongSources": ["oa_name"],
       "upnSource": "ads_name",
       "weakSources": ["mir_name"],
+      "prioritySources": ["oa_name", "ads_name", "es_name","sf_name", "city_name", "adNN_name", "mir_name"],
       "primaryMap": {
         "sf1": "sf_name",
         "es1": "es_name"

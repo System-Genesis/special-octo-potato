@@ -427,7 +427,9 @@ export class Entity extends AggregateRoot {
     }
     // connect one of the DIs
     if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
-      this._state.primaryDigitalIdentityId = connected.find(di => !PrimaryDigitalIdentityService.isWeakSource(di))?.uniqueId;
+      const prefferedDISource = PrimaryDigitalIdentityService.preferredSource(connectedDIs);
+      const preferredDI = connectedDIs.find(di => di.source.value === prefferedDISource);
+      this._state.primaryDigitalIdentityId = preferredDI?.uniqueId;
     } 
     // else, the current primary
   }

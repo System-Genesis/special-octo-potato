@@ -1,3 +1,4 @@
+import { priorityInArray } from './../../../utils/arrayUtils';
 import { Entity } from "./Entity";
 import { DigitalIdentity } from "../../digitalIdentity/domain/DigitalIdentity";
 import { Role } from "../../Role/domain/Role";
@@ -12,11 +13,14 @@ import { wrapResult } from "../../../utils/resultUtils";
 const STRONG_SOURCES: string[] = config.get('valueObjects.source.strongSources');
 const WEAK_SOURCES: string[] = config.get('valueObjects.source.weakSources');
 const PRIMARY_MAP: object = config.get('valueObjects.source.primaryMap');
+const SOURCES_PRIORITY: string[] = config.get('valueObjects.source.prioritySources');
 
 export class PrimaryDigitalIdentityService { // TODO: should be "static" class
   static _primarySourceMap: Map<string, Source> = new Map(Object.entries(PRIMARY_MAP)
     .map(([key, source]) => [key, wrapResult(Source.create(source as string))]));
 
+
+  static _sourcesPriority: string[] = []
 
   static haveStrongSource(digitalIdentity: IConnectedDI) {
     return STRONG_SOURCES.includes(digitalIdentity.source.value);
@@ -30,6 +34,12 @@ export class PrimaryDigitalIdentityService { // TODO: should be "static" class
 
   static isWeakSource(digitalIdentity: IConnectedDI) {
     return WEAK_SOURCES.includes(digitalIdentity.source.value);
+  }
+
+  static preferredSource(digitalIdentities: IConnectedDI[]) {
+    const digitalIdentitiesSources = digitalIdentities.map(di => di.source.value);
+    const prefferedSourceIndex = priorityInArray(digitalIdentitiesSources, SOURCES_PRIORITY);
+    return digitalIdentitiesSources[prefferedSourceIndex];
   }
 
   // public setEntityPrimaryDigitalIdentity(
