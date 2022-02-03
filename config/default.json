@@ -29,7 +29,8 @@
     "EntityType": {
       "Soldier" : "agumon",
       "Civilian" : "digimon",
-      "GoalUser" : "tamar"
+      "GoalUser" : "tamar",
+      "External": "external"
     },
     "Sex": {
       "Male" : "male",

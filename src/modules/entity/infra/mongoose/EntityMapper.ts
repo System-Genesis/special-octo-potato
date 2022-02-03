@@ -1,3 +1,4 @@
+import { EmployeeId } from './../../domain/EmloyeeId';
 import { Types } from "mongoose";
 import { Entity } from "../../domain/Entity";
 import { EntityId } from "../../domain/EntityId";
@@ -22,6 +23,7 @@ export class EntityMapper {
       displayName: entity.displayName,
       personalNumber: entity.personalNumber?.toString(),
       identityCard: entity.identityCard?.toString(),
+      employeeId: entity.employeeId?.toString(),
       rank: entity.rank?.value,
       akaUnit: entity.akaUnit,
       clearance: entity.clearance, // value object
@@ -56,6 +58,8 @@ export class EntityMapper {
             PersonalNumber.create(raw.personalNumber)._unsafeUnwrap() : undefined,
           identityCard: !!raw.identityCard ?
             IdentityCard.create(raw.identityCard)._unsafeUnwrap() : undefined,
+          employeeId: !!raw.employeeId ?
+            EmployeeId.create(raw.employeeId)._unsafeUnwrap() : undefined,    
           rank: !!raw.rank ?
             Rank.create(raw.rank)._unsafeUnwrap() : undefined,
           akaUnit: raw.akaUnit,

@@ -33,6 +33,7 @@ export type entityType = {
   Soldier : string,
   Civilian : string,
   GoalUser : string,
+  External: string,
 }
 
 export const entityTypes: entityType = config.get('valueObjects.EntityType');
@@ -189,7 +190,7 @@ const ENTITY_TYPE_VALID_STATE: {
   };
 } = {
   Civilian: {
-    required: [...REQUIRED_PERSON_FIELDS],
+    required: [...REQUIRED_PERSON_FIELDS, "identityCard"],
     forbidden: ["goalUserId"],
   },
   Soldier: {
@@ -206,6 +207,13 @@ const ENTITY_TYPE_VALID_STATE: {
       "address",
       "dischargeDay",
       "birthDate",
+    ],
+  },
+  External: {
+    required: ["firstName", "employeeId"],
+    forbidden: [
+      "identityCard",
+      "personalNumber",
     ],
   },
 };
