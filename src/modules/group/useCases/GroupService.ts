@@ -1,3 +1,4 @@
+import { SourceMisMatchError } from './errors/SourceMisMatchError';
 import { CannotDeleteRoot } from './../domain/errors/CannotDeleteRoot';
 import { RenameGroupDTO } from './dto/RenameGroupDTO';
 import { RenameRootError } from './../domain/errors/RenameRootError';
@@ -46,6 +47,10 @@ export class GroupService {
       parent = await this.groupRepository.getByGroupId(parentId);
       if (!parent) {
         return err(AppError.ResourceNotFound.create(createDTO.directGroup, 'group'));
+      }
+      const parentSource = parent.source.value;
+      if (createDTO.source !== parentSource) {
+        return err(SourceMisMatchError.create(createDTO.source, parentSource));
       }
       group = parent.createChild(groupId, {
         source: source.value,
@@ -172,9 +177,14 @@ export class GroupService {
     if (!group) {
       return err(AppError.ResourceNotFound.create(moveGroupDTO.groupId, 'group'));
     }
+    const groupSource = group.source.value;
     const parent = await this.groupRepository.getByGroupId(parentId);
     if (!parent) {
       return err(AppError.ResourceNotFound.create(moveGroupDTO.parentId, 'parent group'));
+    }
+    const parentSource = parent.source.value;
+    if (groupSource !== parentSource) {
+      return err(SourceMisMatchError.create(groupSource, parentSource));
     }
     const result = group.moveToParent(parent);
     if (result.isErr()) {

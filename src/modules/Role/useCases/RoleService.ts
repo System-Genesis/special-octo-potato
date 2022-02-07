@@ -20,6 +20,7 @@ import { BaseError } from '../../../core/logic/BaseError';
 import { HasDigitalIdentityAttached } from '../domain/errors/HasDigitalIdentityAttached';
 import { has } from "../../../utils/ObjectUtils";
 import { Role } from '../domain/Role';
+import { SourceMisMatchError } from './errors/SourceMisMatchError';
 
 export class RoleService {
   constructor(
@@ -98,9 +99,14 @@ export class RoleService {
     if (!role) {
       return err(AppError.ResourceNotFound.create(connectDTO.roleId, 'role id'));
     }
+    const roleSource = role.source.value;
     const di = await this.diRepository.getByUniqueId(idOrError.value);
     if (!di) {
       return err(AppError.ResourceNotFound.create(connectDTO.digitalIdentityUniqueId, 'digitalIdentity UniqueId'));
+    }
+    const diSource = di.source.value;
+    if (roleSource !== diSource) {
+      return err(SourceMisMatchError.create(roleSource, diSource));
     }
     const res = role.connectDigitalIdentity(di);
     if (res.isErr()) {
@@ -195,9 +201,14 @@ export class RoleService {
     if (!role) {
       return err(AppError.ResourceNotFound.create(moveGroupDTO.roleId, 'role'));
     }
+    const roleSource = role.source.value;
     const group = await this.groupRepository.getByGroupId(groupId);
     if (!group) {
       return err(AppError.ResourceNotFound.create(moveGroupDTO.groupId, 'group'));
+    }
+    const groupSource = group.source.value;
+    if (roleSource !== groupSource) {
+      return err(SourceMisMatchError.create(roleSource, groupSource));
     }
     role.moveToGroup(group);
     return (await this.roleRepository.save(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
