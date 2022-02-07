@@ -8,6 +8,7 @@ export type CreateEntityDTO = {
   personalNumber?: string;
   identityCard?: string;
   employeeId?: string;
+  organization?: string;
   rank?: string;
   akaUnit?: string;
   clearance?: string;
@@ -30,6 +31,7 @@ export const joiSchema = Joi.object({
   personalNumber: Joi.string(),
   identityCard: Joi.string(),
   employeeId: Joi.string(),
+  organization: Joi.string(),
   rank: Joi.string(),
   akaUnit: Joi.string(),
   clearance: Joi.string().trim().regex(/^\d+$/).max(3),

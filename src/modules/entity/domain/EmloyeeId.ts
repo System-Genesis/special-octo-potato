@@ -5,7 +5,8 @@ export class EmployeeId extends Identifier<string>{
 
   private static isValid(employeeId: string) {
     // Validate correct input
-    return employeeId.match(/^\d{5,6}$/);
+    // TODO: what validation?
+    return employeeId.match(/^\d{4,12}$/);
   }
 
  // TODO: should be error?

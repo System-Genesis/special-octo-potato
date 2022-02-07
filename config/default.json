@@ -13,6 +13,9 @@
     "rank": {
       "values": ["unknown", "rookie", "champion", "ultimate"]
     },
+    "organizations": {
+      "values": ["org1", "org2"]
+    },
     "serviceType": {
       "values": ["A", "B", "C", "D", "E", "F", "G"]
     },

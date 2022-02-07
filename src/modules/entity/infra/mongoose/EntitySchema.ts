@@ -9,6 +9,7 @@ export interface EntityDoc {
   personalNumber?: string; // use value object
   identityCard?: string;
   employeeId?: string;
+  organization?: string;
   rank?: string; //use vale object / enum
   akaUnit?: string;
   clearance?: string; // value object
@@ -43,7 +44,8 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
     displayName: String,
     personalNumber: { type: String, unique: true, sparse: true }, // use value object
     identityCard: { type: String, unique: true, sparse: true  },
-    employeeId: { type: String, unique: true, sparse: true  },
+    employeeId: { type: String, sparse: true  },
+    organization: { type: String, sparse: true },
     rank: String, //use vale object / enum
     akaUnit: String,
     clearance: String, // value object
@@ -76,6 +78,7 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
   }
 );
 
+schema.index({ employeeId: 1, organization: 1} , {unique: true, sparse: true} ); 
 // schema.index({ personalNumber: 1 })
 // schema.index({ identityCard: 1 })
 // schema.index({ goalUserId: 1 })

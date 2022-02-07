@@ -1,3 +1,4 @@
+import { Organization } from './Organization';
 import { EmployeeId } from './EmloyeeId';
 import { isFromArray } from './../../../utils/isSomeValues';
 import config from 'config';
@@ -129,6 +130,7 @@ type EntityState = {
   employeeId?: EmployeeId;
   rank?: Rank;
   akaUnit?: string;
+  organization?: Organization;
   clearance?: string; // value object
   mail?: Mail;
   sex?: string;
@@ -195,12 +197,13 @@ const ENTITY_TYPE_VALID_STATE: {
   },
   Soldier: {
     required: [...REQUIRED_PERSON_FIELDS, "personalNumber"],
-    forbidden: ["goalUserId"],
+    forbidden: ["goalUserId", "employeeId"],
   },
   GoalUser: {
     required: ["firstName", "goalUserId"],
     forbidden: [
       "identityCard",
+      "employeeId",
       "rank",
       "serviceType",
       "sex",
@@ -210,7 +213,7 @@ const ENTITY_TYPE_VALID_STATE: {
     ],
   },
   External: {
-    required: ["firstName", "employeeId"],
+    required: ["firstName", "employeeId", "organization"],
     forbidden: [
       "identityCard",
       "personalNumber",
@@ -502,6 +505,11 @@ export class Entity extends AggregateRoot {
   get rank() {
     return this._state.rank;
   }
+
+  get organization() {
+    return this._state.organization;
+  }
+
   get akaUnit() {
     return this._state.akaUnit;
   }
