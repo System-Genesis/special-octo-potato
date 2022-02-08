@@ -1,5 +1,5 @@
 import { Organization } from './../../domain/Organization';
-import { EmployeeId } from './../../domain/EmloyeeId';
+import { EmployeeNumber } from '../../domain/EmployeeNumber';
 import { Types } from "mongoose";
 import { Entity } from "../../domain/Entity";
 import { EntityId } from "../../domain/EntityId";
@@ -24,7 +24,7 @@ export class EntityMapper {
       displayName: entity.displayName,
       personalNumber: entity.personalNumber?.toString(),
       identityCard: entity.identityCard?.toString(),
-      employeeId: entity.employeeId?.toString(),
+      employeeNumber: entity.employeeNumber?.toString(),
       organization: entity.organization?.value,
       rank: entity.rank?.value,
       akaUnit: entity.akaUnit,
@@ -60,8 +60,8 @@ export class EntityMapper {
             PersonalNumber.create(raw.personalNumber)._unsafeUnwrap() : undefined,
           identityCard: !!raw.identityCard ?
             IdentityCard.create(raw.identityCard)._unsafeUnwrap() : undefined,
-          employeeId: !!raw.employeeId ?
-            EmployeeId.create(raw.employeeId)._unsafeUnwrap() : undefined,  
+          employeeNumber: !!raw.employeeNumber ?
+            EmployeeNumber.create(raw.employeeNumber)._unsafeUnwrap() : undefined,  
           organization: !!raw.organization ?
           Organization.create(raw.organization)._unsafeUnwrap() : undefined,  
           rank: !!raw.rank ?

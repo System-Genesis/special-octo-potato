@@ -7,7 +7,7 @@ export type CreateEntityDTO = {
   lastName?: string;
   personalNumber?: string;
   identityCard?: string;
-  employeeId?: string;
+  employeeNumber?: string;
   organization?: string;
   rank?: string;
   akaUnit?: string;
@@ -30,7 +30,7 @@ export const joiSchema = Joi.object({
   lastName: Joi.string(),
   personalNumber: Joi.string(),
   identityCard: Joi.string(),
-  employeeId: Joi.string(),
+  employeeNumber: Joi.string(),
   organization: Joi.string(),
   rank: Joi.string(),
   akaUnit: Joi.string(),

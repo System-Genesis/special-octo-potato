@@ -1,8 +1,8 @@
 import { InvalidOrganizationValue } from './errors/InvalidOrganizationValue';
 import { MissingOrganizationEmployee } from './errors/MissingOrganizationEmployee';
 import { Organization } from './../domain/Organization';
-import { EmployeeIdAlreadyExists } from './errors/EmployeeIdAlreadyExists';
-import { EmployeeId } from './../domain/EmloyeeId';
+import { EmployeeNumberAlreadyExists } from './errors/EmployeeNumberAlreadyExists';
+import { EmployeeNumber } from '../domain/EmployeeNumber';
 import { connect } from './../../../shared/infra/mongoose/connection';
 import config from 'config';
 import { IdentityCard } from './../domain/IdentityCard';
@@ -51,7 +51,7 @@ export class EntityService {
       | AppError.RetryableConflictError
     >
   > {
-    let personalNumber, identityCard, employeeId, organization, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
+    let personalNumber, identityCard, employeeNumber, organization, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
     // check entity type
     const entityType = castToEntityType(createEntityDTO.entityType).mapErr(AppError.ValueValidationError.create);
     if (entityType.isErr()) {
@@ -87,7 +87,7 @@ export class EntityService {
         return err(GoalUserIdAlreadyExistsError.create(createEntityDTO.goalUserId));
       }
     }
-    if (has(createEntityDTO, 'employeeId')) {
+    if (has(createEntityDTO, 'employeeNumber')) {
       if (!has(createEntityDTO, 'organization')) {
         return err(MissingOrganizationEmployee.create());
       }
@@ -95,12 +95,12 @@ export class EntityService {
       if (organization.isErr()) {
         return err(InvalidOrganizationValue.create(createEntityDTO.organization));
       }
-      employeeId = EmployeeId.create(createEntityDTO.employeeId).mapErr(AppError.ValueValidationError.create);
-      if (employeeId.isErr()) {
-        return err(employeeId.error);
+      employeeNumber = EmployeeNumber.create(createEntityDTO.employeeNumber).mapErr(AppError.ValueValidationError.create);
+      if (employeeNumber.isErr()) {
+        return err(employeeNumber.error);
       }
-      if (await this.entityRepository.exists(employeeId.value, organization.value)) {
-        return err(EmployeeIdAlreadyExists.create(createEntityDTO.employeeId, createEntityDTO.organization));
+      if (await this.entityRepository.exists(employeeNumber.value, organization.value)) {
+        return err(EmployeeNumberAlreadyExists.create(createEntityDTO.employeeNumber, createEntityDTO.organization));
       }
     }
     // extract all other existing fields
@@ -162,7 +162,7 @@ export class EntityService {
       akaUnit: createEntityDTO.akaUnit,
       personalNumber: personalNumber?.value,
       identityCard: identityCard?.value,
-      employeeId: employeeId?.value,
+      employeeNumber: employeeNumber?.value,
       goalUserId: goalUserId?.value,
       organization: organization?.value,
       rank: rank?.value,

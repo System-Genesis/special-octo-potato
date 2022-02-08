@@ -1,4 +1,4 @@
-import { EmployeeId } from '../../domain/EmloyeeId';
+import { EmployeeNumber } from '../../domain/EmployeeNumber';
 import { BaseError } from "../../../../core/logic/BaseError";
 
 export class MissingOrganizationEmployee extends BaseError {

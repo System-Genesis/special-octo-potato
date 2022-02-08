@@ -1,5 +1,5 @@
 import { Organization } from './Organization';
-import { EmployeeId } from './EmloyeeId';
+import { EmployeeNumber } from './EmployeeNumber';
 import { isFromArray } from './../../../utils/isSomeValues';
 import config from 'config';
 import { DigitalIdentityRepresent } from "./../../digitalIdentity/domain/DigitalIdentity";
@@ -127,7 +127,7 @@ type EntityState = {
   displayName?: string; // TODO maybe remove thid field
   personalNumber?: PersonalNumber;
   identityCard?: IdentityCard;
-  employeeId?: EmployeeId;
+  employeeNumber?: EmployeeNumber;
   rank?: Rank;
   akaUnit?: string;
   organization?: Organization;
@@ -197,13 +197,13 @@ const ENTITY_TYPE_VALID_STATE: {
   },
   Soldier: {
     required: [...REQUIRED_PERSON_FIELDS, "personalNumber"],
-    forbidden: ["goalUserId", "employeeId"],
+    forbidden: ["goalUserId", "employeeNumber"],
   },
   GoalUser: {
     required: ["firstName", "goalUserId"],
     forbidden: [
       "identityCard",
-      "employeeId",
+      "employeeNumber",
       "rank",
       "serviceType",
       "sex",
@@ -213,7 +213,7 @@ const ENTITY_TYPE_VALID_STATE: {
     ],
   },
   External: {
-    required: ["firstName", "employeeId", "organization"],
+    required: ["firstName", "employeeNumber", "organization"],
     forbidden: [
       "identityCard",
       "personalNumber",
@@ -499,8 +499,8 @@ export class Entity extends AggregateRoot {
   get identityCard() {
     return this._state.identityCard;
   }
-  get employeeId() {
-    return this._state.employeeId;
+  get employeeNumber() {
+    return this._state.employeeNumber;
   }
   get rank() {
     return this._state.rank;
