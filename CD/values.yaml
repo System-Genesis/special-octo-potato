@@ -11,7 +11,7 @@ volume:
   - name: write-service-volume
     mounts:
       - mountPath: /dist/config
-        subPath: write-env.json
+        subPath: write-service/write-env.json
     secretName: azure-secret 
     shareName: system-genesis/write-service
     type: azurefile 
