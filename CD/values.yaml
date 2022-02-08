@@ -9,9 +9,7 @@ images:
 
 volume:
   - name: write-service-volume
-    mounts:
-      - mountPath: /dist/config
-        subPath: write-service/write-env.json
+    mountPath: /dist/config
     secretName: azure-secret 
     shareName: system-genesis/write-service
     type: azurefile 
