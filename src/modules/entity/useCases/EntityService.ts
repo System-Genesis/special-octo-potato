@@ -1,3 +1,8 @@
+import { InvalidOrganizationValue } from './errors/InvalidOrganizationValue';
+import { MissingOrganizationEmployee } from './errors/MissingOrganizationEmployee';
+import { Organization } from './../domain/Organization';
+import { EmployeeNumberAlreadyExists } from './errors/EmployeeNumberAlreadyExists';
+import { EmployeeNumber } from '../domain/EmployeeNumber';
 import { connect } from './../../../shared/infra/mongoose/connection';
 import config from 'config';
 import { IdentityCard } from './../domain/IdentityCard';
@@ -46,7 +51,7 @@ export class EntityService {
       | AppError.RetryableConflictError
     >
   > {
-    let personalNumber, identityCard, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
+    let personalNumber, identityCard, employeeNumber, organization, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
     // check entity type
     const entityType = castToEntityType(createEntityDTO.entityType).mapErr(AppError.ValueValidationError.create);
     if (entityType.isErr()) {
@@ -80,6 +85,22 @@ export class EntityService {
       }
       if (await this.entityRepository.exists(goalUserId.value)) {
         return err(GoalUserIdAlreadyExistsError.create(createEntityDTO.goalUserId));
+      }
+    }
+    if (has(createEntityDTO, 'employeeNumber')) {
+      if (!has(createEntityDTO, 'organization')) {
+        return err(MissingOrganizationEmployee.create());
+      }
+      organization = Organization.create(createEntityDTO.organization)
+      if (organization.isErr()) {
+        return err(InvalidOrganizationValue.create(createEntityDTO.organization));
+      }
+      employeeNumber = EmployeeNumber.create(createEntityDTO.employeeNumber).mapErr(AppError.ValueValidationError.create);
+      if (employeeNumber.isErr()) {
+        return err(employeeNumber.error);
+      }
+      if (await this.entityRepository.exists(employeeNumber.value, organization.value)) {
+        return err(EmployeeNumberAlreadyExists.create(createEntityDTO.employeeNumber, createEntityDTO.organization));
       }
     }
     // extract all other existing fields
@@ -141,7 +162,9 @@ export class EntityService {
       akaUnit: createEntityDTO.akaUnit,
       personalNumber: personalNumber?.value,
       identityCard: identityCard?.value,
+      employeeNumber: employeeNumber?.value,
       goalUserId: goalUserId?.value,
+      organization: organization?.value,
       rank: rank?.value,
       serviceType: serviceType?.value,
       sex: sex?.value,

@@ -1,3 +1,5 @@
+import { Organization } from './Organization';
+import { EmployeeNumber } from './EmployeeNumber';
 import { isFromArray } from './../../../utils/isSomeValues';
 import config from 'config';
 import { DigitalIdentityRepresent } from "./../../digitalIdentity/domain/DigitalIdentity";
@@ -32,6 +34,7 @@ export type entityType = {
   Soldier : string,
   Civilian : string,
   GoalUser : string,
+  External: string,
 }
 
 export const entityTypes: entityType = config.get('valueObjects.EntityType');
@@ -124,8 +127,10 @@ type EntityState = {
   displayName?: string; // TODO maybe remove thid field
   personalNumber?: PersonalNumber;
   identityCard?: IdentityCard;
+  employeeNumber?: EmployeeNumber;
   rank?: Rank;
   akaUnit?: string;
+  organization?: Organization;
   clearance?: string; // value object
   mail?: Mail;
   sex?: string;
@@ -192,18 +197,26 @@ const ENTITY_TYPE_VALID_STATE: {
   },
   Soldier: {
     required: [...REQUIRED_PERSON_FIELDS, "personalNumber"],
-    forbidden: ["goalUserId"],
+    forbidden: ["goalUserId", "employeeNumber"],
   },
   GoalUser: {
     required: ["firstName", "goalUserId"],
     forbidden: [
       "identityCard",
+      "employeeNumber",
       "rank",
       "serviceType",
       "sex",
       "address",
       "dischargeDay",
       "birthDate",
+    ],
+  },
+  External: {
+    required: ["firstName", "employeeNumber", "organization"],
+    forbidden: [
+      "identityCard",
+      "personalNumber",
     ],
   },
 };
@@ -425,7 +438,7 @@ export class Entity extends AggregateRoot {
       this._state.primaryDigitalIdentityId = primarySourceDI.uniqueId;
       return;
     }
-    // connect one of the DIs
+    // connect one of the DIs // TODO: check if has hierarchy?
     if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
       this._state.primaryDigitalIdentityId = connected.find(di => !PrimaryDigitalIdentityService.isWeakSource(di))?.uniqueId;
     } 
@@ -486,9 +499,17 @@ export class Entity extends AggregateRoot {
   get identityCard() {
     return this._state.identityCard;
   }
+  get employeeNumber() {
+    return this._state.employeeNumber;
+  }
   get rank() {
     return this._state.rank;
   }
+
+  get organization() {
+    return this._state.organization;
+  }
+
   get akaUnit() {
     return this._state.akaUnit;
   }

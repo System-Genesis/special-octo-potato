@@ -1,3 +1,5 @@
+import { Organization } from './../../domain/Organization';
+import { EmployeeNumber } from '../../domain/EmployeeNumber';
 import { EventOutbox } from './../../../../shared/infra/mongoose/eventOutbox/Outbox';
 import { Model, Types, FilterQuery, Connection } from "mongoose";
 import { EntityRepository as IEntityRepository, IhaveEntityIdentifiers, EntityIdentifier } from "../../repository/EntityRepository"
@@ -26,12 +28,13 @@ export class EntityRepository implements IEntityRepository {
     }
   }
 
-  async exists(identifier: EntityIdentifier): Promise<boolean> {
-    let identifierName: 'personalNumber' | 'identityCard' | 'goalUserId';
+  async exists(identifier: EntityIdentifier, organization?: Organization): Promise<boolean> {
+    let identifierName: 'personalNumber' | 'identityCard' | 'goalUserId' | 'employeeNumber';
     if(identifier instanceof PersonalNumber) { identifierName = 'personalNumber'; }
     else if(identifier instanceof IdentityCard) { identifierName = 'identityCard'; }
+    else if(identifier instanceof EmployeeNumber) { identifierName = 'employeeNumber'; }
     else { identifierName = 'goalUserId'; }
-    const res = await this._model.findOne({ [identifierName]: identifier.toString() }).lean().select('_id');
+    const res = await this._model.findOne({... { [identifierName]: identifier.toString() }, ...organization && ({ organization: organization.value }) }).lean().select('_id');
     return !!res;
   }
 
