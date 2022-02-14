@@ -3,7 +3,7 @@ import { BaseError } from "../../../../core/logic/BaseError";
 
 export class InvalidOrganizationValue extends BaseError {
   private constructor(organization : string) {
-    super(``);
+    super(`Invalid organization ${organization}`);
   }
 
   static create(organization: string) {
