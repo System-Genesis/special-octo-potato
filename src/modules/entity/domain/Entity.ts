@@ -228,6 +228,7 @@ const SET_ONLY_ONCE_FIELDS = new Set([
   // "birthDate",
 ] as (keyof EntityState)[]);
 
+//TODO: should add  more fields like employeeId
 type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
 export type UpdateResult = Result<
   void,
