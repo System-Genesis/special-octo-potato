@@ -1,13 +1,12 @@
 
-import { findByQuery, findOneByQuery } from '../../../tests/seedUtils';
-import { emptyDB } from '../../../tests/seedUtils';
+import { findByQuery, findOneByQuery, emptyDB } from '../tests/setup/seedUtils';
 /* eslint-disable prettier/prettier */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable import/no-mutable-exports */
 import request from 'supertest';
 import * as http from 'http';
-import {app} from '../../../shared/infra/http/app'
-import {startApp} from '../../../index';
+import {app} from '../shared/infra/http/app'
+import {startApp} from '../index';
 
 let server: http.Server;
 beforeAll(async () => {

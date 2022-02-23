@@ -7,7 +7,7 @@
     "test-entities": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/entity/useCases/.*.integration.spec.ts",
     "test-dis": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/digitalIdentity/useCases/.*.integration.spec.ts",
     "test-roles": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/Role/useCases/.*.integration.spec.ts",
-    "test-groups": "cross-env NODE_ENV=test jest  --verbose --coverage --runInBand --testPathPattern=src/modules/group/useCases/.*.integration.spec.ts",
+    "test-groups": "cross-env NODE_ENV=test jest  --verbose --coverage --runInBand -- src/tests/.*group*.integration.spec.ts",
     "build": "tsc --project tsconfig.json",
     "start": "npm run build && npm run serve",
     "serve": "node dist/index.js",

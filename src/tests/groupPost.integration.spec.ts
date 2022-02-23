@@ -1,13 +1,12 @@
-import { connect } from './../../../shared/infra/mongoose/connection';
+import { connect } from '../shared/infra/mongoose/connection';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { findByQuery, findOneByQuery, insert } from './../../../tests/seedUtils';
-import { emptyDB } from '../../../tests/seedUtils';
+import { emptyDB, findByQuery, findOneByQuery } from '../tests/setup/seedUtils';
 /* eslint-disable prettier/prettier */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable import/no-mutable-exports */
 import request from 'supertest';
 import * as http from 'http';
-import { start as startServer, app } from '../../../shared/infra/http/app';
+import { start as startServer, app } from '../shared/infra/http/app';
 
 let server: http.Server;
 beforeAll(async () => {
@@ -112,6 +111,7 @@ describe('POST Group ', () => {
             });
         
     });
+    
 
 });
 
