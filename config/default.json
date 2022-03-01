@@ -59,5 +59,17 @@
   },
   "server": {
     "port": 4000
+  },
+  "logger": {
+    "rabbit": {
+      "uri": "rabbit-uri",
+      "logger": "logger-queue",
+      "prefetch": 100,
+      "retryOptions": {
+        "minTimeout": 100,
+        "retries": 10,
+        "factor": 1.8
+      }
+    }
   }
 }
