@@ -36,84 +36,96 @@ afterAll(async () => {
 });
 
 
+describe('GROUP USECASES', () => {
+    beforeEach(async () => {
+    try {
+        await emptyDB()
+    } catch (err) {
+        console.log(err)
+    }
+    });
 
-describe('POST Group ', () => {
-    const esGroup = { name: "es_name", source: 'es_name'}
     let esId: string;
     let nikeGroup;
-    it('create a VALID root group es_name', (done) => {
-        request(app)
-            .post(`/api/groups`)
-            .send(
-                esGroup
-            )
-            .expect(200)
-            .end(async (err :any, res : any) => {
-                if (err) {
-                    
-                    throw done(err);
-                }
-                expect(Object.keys(res.body).length === 1)
-                expect(res.body.id).toBeTruthy()
-                esId = res.body.id
-                const foundGroup = await findOneByQuery('groups', { name: "es_name"})
-                expect(foundGroup.name).toBe('es_name')
-                return done();
-            });
-    });
+    let nonValidGroup: string | object | undefined;
     let foundNikeGroup : any;
-    it('create a VALID child group nike', (done) => {
-        nikeGroup = { name: "nike", source: 'es_name', directGroup: esId}
-        request(app)
-            .post(`/api/groups`)
-            .send(
-                nikeGroup
-            )
-            .expect(200)
-            .end(async (err :any, res : any) => {
-                if (err) {
-                    
-                    throw done(err);
-                }
-                expect(Object.keys(res.body).length === 1)
-                expect(res.body.id).toBeTruthy()
-                foundNikeGroup = await findOneByQuery('groups', { name: "nike"})
-                expect(foundNikeGroup.name).toBe('nike')
-                return done();
-            });
-    });
-    it('shouldnt delete a root group because is not a leaf', async () => {
-        request(app)
-            .delete(`/api/groups/`+esId.toString())
-            .expect(400)
-            .end(async (err :any, res : any) => {
-                if (err) {
-                    
-                    throw (err);
-                }
-                
-            });
-        
-    });
-    it('delete a VALID group ', async () => {
-        request(app)
-            .delete(`/api/groups/`+foundNikeGroup._id.toString())
-            .expect(200)
-            .end(async (err :any, res : any) => {
-                if (err) {
-                    
-                    throw (err);
-                }
-                
-                const foundGroup = await findOneByQuery('groups', { name: "nike"})
-                expect(foundGroup).toBe(null)
-                
-            });
-        
-    });
     
+    describe('CREATE Group UseCases ', () => {
+
+        const esGroup = { name: "es_name", source: 'es_name'}
+
+        it('create a VALID root group es_name', async () => {
+            const res = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            expect(Object.keys(res.body).length === 1)
+            expect(res.body.id).toBeTruthy()
+            esId = res.body.id
+            const foundESGroup = await findOneByQuery('groups', { name: "es_name"})
+            expect(foundESGroup).toEqual(expect.objectContaining({name: 'es_name', source: 'es_name', isLeaf: true}))
+        });
+
+        it('create a VALID child group nike', async () => {
+            const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            nikeGroup = { name: "nike", source: 'es_name', directGroup: esRes.body.id}
+            const res = await request(app).post(`/api/groups`).send(nikeGroup).expect(200)
+            expect(Object.keys(res.body).length === 1)
+            expect(res.body.id).toBeTruthy()
+            foundNikeGroup = await findOneByQuery('groups', { name: "nike"})
+            expect(foundNikeGroup).toMatchObject({name: 'nike', source: 'es_name', isLeaf: true})
+            const foundGroup = await findOneByQuery('groups', { name: "es_name"})
+            expect(foundGroup).toEqual(expect.objectContaining({name: 'es_name', source: 'es_name', isLeaf: false}))
+        });
+
+        it('shouldnt create already exists child group nike', async () => {
+            const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            nikeGroup = { name: "nike", source: 'es_name', directGroup: esRes.body.id}
+            await request(app).post(`/api/groups`).send(nikeGroup).expect(200)
+            const res = await request(app).post(`/api/groups`).send(nikeGroup).expect(400)
+            expect(res.body.message).toEqual(expect.stringContaining('already exists'))
+        });
+
+        it('shouldnt delete a es_name group because its not a leaf', async () => {
+            const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            nikeGroup = { name: "nike", source: 'es_name', directGroup: esRes.body.id}
+            await request(app).post(`/api/groups`).send(nikeGroup).expect(200)
+            const res = await request(app).delete(`/api/groups/`+esRes.body.id).expect(400)
+        });
+
+        it('should delete nike child group ', async () => {
+            const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            nikeGroup = { name: "nike", source: 'es_name', directGroup: esRes.body.id}
+            const nikeRes = await request(app).post(`/api/groups`).send(nikeGroup).expect(200)
+            const res = await request(app).delete(`/api/groups/`+nikeRes.body.id).expect(200)                    
+            const foundGroup = await findOneByQuery('groups', { name: "nike"})
+            expect(foundGroup).toBe(null)
+        });
+
+        it('shouldnt create a non valid source group ss', async () => {
+            const ssGroup = { name: "ss", source: 'ss'}
+            const res = await request(app).post(`/api/groups`).send(ssGroup).expect(400)
+            expect(res.body.message).toEqual(expect.stringContaining('invalid source'))
+        });
+
+        
+        it('shouldnt create a group with non exist parent', async () => {
+            nonValidGroup = { name: "es_name", source: 'es_name', directGroup: '123'}
+            const res = await request(app).post(`/api/groups`).send(nonValidGroup).expect(404)
+            expect(res.body.message).toEqual(expect.stringContaining('not exist'))
+        });
+
+
+        it('shouldnt create adidas group from sf_name under nike from es_name', async () => {
+            const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
+            nonValidGroup = { name: "ss", source: 'sf_name', directGroup: esRes.body.id}
+            const res = await request(app).post(`/api/groups`).send(nonValidGroup).expect(400)
+            expect(res.body.message).toEqual(expect.stringContaining(`sf_name doesn't match to source es_name`))
+
+        });
+
+    });
 
 });
+
+
 
 // describe('DELETE Group ', () => {
 //     it('delete a VALID group ', async () => {
@@ -192,4 +204,4 @@ describe('POST Group ', () => {
 //             });
 
 //     });
-// })
+
