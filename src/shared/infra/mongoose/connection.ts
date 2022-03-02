@@ -9,11 +9,9 @@ const opts: ConnectOptions = {
   poolSize: Number(config.get('db.mongo.poolSize')),
 };
 
-const connString: string = config.get('db.mongo.connectionString');
-
 const conn = mongoose.createConnection();
 
-export const connect = async () => {
+export const connect = async (connString: string) => {
   await conn.openUri(connString, opts);
 }
 

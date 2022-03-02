@@ -1,15 +1,14 @@
-import { digitalIdentityService } from './../../digitalIdentity/useCases/index';
-import { PersonalNumber } from '../domain/PersonalNumber';
-import { IdentityCard } from '../domain/IdentityCard';
-import { findByQuery, findOneByQuery } from '../../../tests/seedUtils';
-import { emptyDB } from '../../../tests/seedUtils';
+import { digitalIdentityService } from '../modules/digitalIdentity/useCases/index';
+import { PersonalNumber } from '../modules/entity/domain/PersonalNumber';
+import { IdentityCard } from '../modules/entity/domain/IdentityCard';
+import { emptyDB, findByQuery, findOneByQuery } from '../tests/setup/seedUtils';
 /* eslint-disable prettier/prettier */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable import/no-mutable-exports */
 import request from 'supertest';
 import * as http from 'http';
-import {app} from '../../../shared/infra/http/app'
-import {startApp} from '../../../index';
+import {app} from '../shared/infra/http/app'
+import {startApp} from '../index';
 
 let server: http.Server;
 beforeAll(async () => {

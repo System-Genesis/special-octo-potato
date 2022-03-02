@@ -2,7 +2,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import * as mongoose from 'mongoose';
-import conn from '../shared/infra/mongoose/connection';
+import conn from '../../shared/infra/mongoose/connection';
 
 const dbConnection = conn;
 

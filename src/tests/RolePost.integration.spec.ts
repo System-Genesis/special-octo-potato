@@ -1,12 +1,12 @@
-import { emptyDB } from './../../../tests/seedUtils';
+import { emptyDB, findByQuery, findOneByQuery } from '../tests/setup/seedUtils';
 /* eslint-disable prettier/prettier */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable import/no-mutable-exports */
 import request from 'supertest';
 import * as qs from 'qs';
-import {startApp} from '../../../index';
+import {startApp} from '../index';
 import * as http from 'http';
-import {app} from '../../../shared/infra/http/app'
+import {app} from '../shared/infra/http/app'
 let server: http.Server;
 
 
