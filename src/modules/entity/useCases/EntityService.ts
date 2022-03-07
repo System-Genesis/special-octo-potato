@@ -1,3 +1,6 @@
+import { logEntity } from './../logger/parser';
+
+import { Logger } from './../../../shared/infra/rabbit/logger';
 import { InvalidOrganizationValue } from './errors/InvalidOrganizationValue';
 import { MissingOrganizationEmployee } from './errors/MissingOrganizationEmployee';
 import { Organization } from './../domain/Organization';
@@ -36,7 +39,7 @@ import { HasDigitalIdentityAttached } from './errors/HasDigitalIdentityAttached'
 import { BaseError } from '../../../core/logic/BaseError';
 
 export class EntityService {
-  constructor(private entityRepository: EntityRepository, private diRepository: DigitalIdentityRepository) { }
+  constructor(private entityRepository: EntityRepository, private diRepository: DigitalIdentityRepository, private logger: Logger) { }
 
   async createEntity(
     createEntityDTO: CreateEntityDTO
@@ -56,6 +59,7 @@ export class EntityService {
     const entityType = castToEntityType(createEntityDTO.entityType).mapErr(AppError.ValueValidationError.create);
     if (entityType.isErr()) {
       return err(entityType.error);
+      
     }
     // extract all identifiers and check for duplicates for each one:
     if (has(createEntityDTO, 'personalNumber')) {
@@ -177,6 +181,7 @@ export class EntityService {
     if (entityOrError.isErr()) {
       return err(entityOrError.error);
     }
+    this.logger.logInfo(logEntity(entityOrError.value, 'entity created', ''), false)
     let val = (await this.entityRepository.save(entityOrError.value))
       .map(() => entityToDTO(entityOrError.value))
       .mapErr((err) => AppError.RetryableConflictError.create(err.message));

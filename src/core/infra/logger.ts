@@ -1,12 +1,16 @@
+
+import { sanitize } from '../../utils/ObjectUtils';
+import { Entity } from './../../modules/entity/domain/Entity';
 export interface entityLog {
-identifiers: {
-    personalNumber: string,
-    identityCard: string,
-    goalUserId: string,
-    employeeId: string
-};
-message: string,
-title: string,
+  identifiers: {
+      personalNumber?: string,
+      identityCard?: string,
+      goalUserId?: string,
+      employeeId?: string,
+      id?: string,
+  };
+  message: string,
+  title: string,
 }
 
 export interface ILogger {
@@ -15,5 +19,6 @@ export interface ILogger {
  * @param t 
  * @param local 
  */
-  logInfo(t: infoLog, local: boolean) : void;
+  logInfo(t: entityLog, local: boolean) : void;
+  logError(t: entityLog, local: boolean) : void;
 }

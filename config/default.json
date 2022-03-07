@@ -64,8 +64,8 @@
     "serviceName": "write",
     "systemName": "kartoffel",
     "rabbit": {
-      "uri": "rabbit-uri",
-      "logger": "logger-queue",
+      "uri": "amqp://localhost:5672",
+      "loggerQueue": "write-queue",
       "prefetch": 100,
       "retryOptions": {
         "minTimeout": 100,
