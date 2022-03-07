@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-entities": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/entity/useCases/*entity*.integration.spec.ts",
+    "test-entities": "cross-env NODE_ENV=test jest --coverage --collectCoverageFrom=src/modules/entity/*/* --runInBand src/tests/entities/entity.integration.test.ts",
     "test-dis": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/digitalIdentity/useCases/*digitalIdentity*.integration.spec.ts",
     "test-roles": "cross-env NODE_ENV=test jest  --verbose --runInBand --testPathPattern=src/modules/Role/useCases/*role*.integration.spec.ts",
     "test-groups": "cross-env NODE_ENV=test jest --coverage --collectCoverageFrom=src/modules/group/*/* --runInBand src/tests/groups/group.integration.test.ts",
