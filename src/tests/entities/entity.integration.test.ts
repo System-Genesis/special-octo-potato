@@ -1,3 +1,4 @@
+import { testConnectEntity } from './entityConnect.integration.spec';
 import { connect } from "../../shared/infra/mongoose/connection";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { emptyDB, findByQuery, findOneByQuery } from "../setup/seedUtils";
@@ -34,6 +35,7 @@ afterAll(async () => {
 
 describe("Sequentially run groups tests", () => {
   testCreateEntity();
+  testConnectEntity();
   afterAll(async () => {
     await server.close();
   });

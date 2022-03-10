@@ -13,9 +13,13 @@ const entityTypes: {
   External: string;
 } = config.get("valueObjects.EntityType");
 
-const gUserDomains: string[] = config.get(
+const sources: string[] = config.get('valueObjects.source.values');
+const es_name_source = sources[1]
+
+const userDomains: string[] = config.get(
   "valueObjects.digitalIdentityId.domain.values"
 );
+const esDomain = userDomains[1];
 const organizations: string[] = config.get("valueObjects.organizations.values");
 const serviceTypes: string[] = config.get("valueObjects.serviceType.values");
 const ranks: string[] = config.get("valueObjects.rank.values");
@@ -51,30 +55,31 @@ export const testConnectEntity = () => {
         phone: "09-8651414",
         mobilePhone: "054-7340538",
       };
-      it("connect entity to sf_name di", async () => {
-        const res = await request(app)
-          .post(`/api/entities`)
-          .send(soldEntity)
-          .expect(200);
-        expect(Object.keys(res.body).length === 1);
-        expect(res.body.id).toBeTruthy();
-        entityId = Types.ObjectId(res.body.id);
-        const foundEntity = await findOneByQuery("entities", {
-          _id: entityId,
-        });
-        expect(foundEntity).toEqual(
-          expect.objectContaining({
-            firstName: "Noam",
-            lastName: "Shiloni",
-            entityType: entityTypes.Soldier,
-            personalNumber: "8517714",
-            serviceType: serviceTypes[0],
-            rank: ranks[0],
-            sex: sexes.Male,
-            phone: ["098651414"],
-            mobilePhone: ["0547340538"],
-          })
-        );
+
+      const esDI = {
+        type: "domainUser",
+        source: es_name_source,
+        mail: `you@${esDomain}`,
+        uniqueId: `uniqueId@${esDomain}`,
+        isRoleAttachable: true
+      }
+
+      it.only("connect and disconnect entity to es_name di", async () => {
+        const resEntityCreate = await request(app).post(`/api/entities`).send(soldEntity).expect(200);
+        expect(Object.keys(resEntityCreate.body).length === 1);
+        expect(resEntityCreate.body.id).toBeTruthy();
+        const entityId = resEntityCreate.body.id;
+        const resDICreate = await request(app).post(`/api/digitalIdentities`).send(esDI).expect(200)
+        const resConnectES = await request(app).put(`/api/entities/${entityId}/digitalIdentity/${esDI.uniqueId}`).send().expect(200)
+        let foundDI = await findOneByQuery('digitalidentities', { uniqueId: `uniqueid@${esDomain}`})
+        expect(foundDI).toEqual(expect.objectContaining({
+          entityId: Types.ObjectId(entityId)
+        }))
+        const resDisConnectES = await request(app).delete(`/api/entities/${entityId}/digitalIdentity/${esDI.uniqueId}`).send().expect(200)
+        foundDI = await findOneByQuery('digitalidentities', { uniqueId: `uniqueid@${esDomain}`})
+        expect(foundDI).toEqual(expect.not.objectContaining({
+          entityId: Types.ObjectId(entityId)
+        }))
       });
 
     });

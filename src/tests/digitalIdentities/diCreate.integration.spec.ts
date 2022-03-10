@@ -7,7 +7,10 @@ import { app } from '../../shared/infra/http/app';
 
 const sources: string[] = config.get('valueObjects.source.values');
 const es_name_source = sources[1]
-
+const userDomains: string[] = config.get(
+    "valueObjects.digitalIdentityId.domain.values"
+  );
+const esDomain = userDomains[1];
 
 export const testCreateDI = () => {
     describe('DI CREATE USECASES', () => {
@@ -19,14 +22,24 @@ export const testCreateDI = () => {
         }
         });
     
-        const esGroup = { name: es_name_source, source: es_name_source}
+        const esDI = {
+            type: "domainUser",
+            source: es_name_source,
+            mail: `you@${esDomain}`,
+            uniqueId: `uniqueId@${esDomain}`,
+            isRoleAttachable: true
+        }
 
-        it('create a VALID di sf_name', async () => {
-            const res = await request(app).post(`/api/groups`).send(esGroup).expect(200)
-            expect(Object.keys(res.body).length === 1)
-            expect(res.body.id).toBeTruthy()
-            const foundESGroup = await findOneByQuery('groups', { name: es_name_source})
-            expect(foundESGroup).toEqual(expect.objectContaining({name: es_name_source, source: es_name_source, isLeaf: true}))
+        it('create a VALID di es_name', async () => {
+            const res = await request(app).post(`/api/digitalIdentities`).send(esDI).expect(200)
+            const foundDI = await findOneByQuery('digitalidentities', { uniqueId: `uniqueid@${esDomain}`})
+            expect(foundDI).toEqual(expect.objectContaining({
+            type: "domainUser",
+            source: es_name_source,
+            mail: `you@${esDomain}`,
+            uniqueId: `uniqueid@${esDomain}`,
+            isRoleAttachable: true}
+            ))
         });
     
     
