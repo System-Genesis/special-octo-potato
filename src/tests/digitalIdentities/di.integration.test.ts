@@ -1,3 +1,4 @@
+import { testUpdateDI } from './diUpdate.integration.spec';
 import { connect } from '../../shared/infra/mongoose/connection';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { emptyDB, findByQuery, findOneByQuery } from '../setup/seedUtils';
@@ -38,4 +39,5 @@ afterAll(async () => {
 
 describe('Sequentially run digitalIdentities tests', () => {
    testCreateDI()
+   testUpdateDI()
 })

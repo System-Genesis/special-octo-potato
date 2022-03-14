@@ -64,7 +64,7 @@ export const testConnectEntity = () => {
         isRoleAttachable: true
       }
 
-      it.only("connect and disconnect entity to es_name di", async () => {
+      it("connect and disconnect entity to es_name di", async () => {
         const resEntityCreate = await request(app).post(`/api/entities`).send(soldEntity).expect(200);
         expect(Object.keys(resEntityCreate.body).length === 1);
         expect(resEntityCreate.body.id).toBeTruthy();
