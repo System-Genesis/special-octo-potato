@@ -1,5 +1,5 @@
 
-import { DigitalIdentityRepository } from './../../digitalIdentity/repository/DigitalIdentityRepository';
+import { DigitalIdentityRepository } from '../../digitalIdentity/repository/DigitalIdentityRepository';
 import { GroupRepository } from '../repository/GroupRepository';
 import 'jest-ts-auto-mock'
 import { createMock } from 'ts-auto-mock';

@@ -1,6 +1,7 @@
 import { Result, err, ok } from "neverthrow";
 import { Identifier } from "../../../core/domain/Identifier";
 
+//TODO (D-T): should be value objects? collection of validation functions?
 export class PersonalNumber extends Identifier<string> {
 
   private static isValid(personalNumber: string) {

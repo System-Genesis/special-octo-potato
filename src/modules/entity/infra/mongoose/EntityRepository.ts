@@ -34,6 +34,7 @@ export class EntityRepository implements IEntityRepository {
     else if(identifier instanceof IdentityCard) { identifierName = 'identityCard'; }
     else if(identifier instanceof EmployeeNumber) { identifierName = 'employeeNumber'; }
     else { identifierName = 'goalUserId'; }
+    // TODO (D): if use function exists, use exists instead of findOne
     const res = await this._model.findOne({... { [identifierName]: identifier.toString() }, ...organization && ({ organization: organization.value }) }).lean().select('_id');
     return !!res;
   }
