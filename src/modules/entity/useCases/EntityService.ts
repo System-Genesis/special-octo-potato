@@ -300,13 +300,6 @@ export class EntityService {
     }
     const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, akaUnit, entityType, ...rest } = updateDTO;
     // try to update entity for each existing field in the DTO
-    if (entityType) {
-      const newEntityType = castToEntityType(entityType).mapErr(AppError.ValueValidationError.create);
-      if (newEntityType.isErr()) {
-        return err(newEntityType.error);
-      }
-      changes.push(entity.updateDetails({ entityType: newEntityType.value }));
-    }
     if (personalNumber) {
       const newPersonalNumber = PersonalNumber.create(personalNumber).mapErr(AppError.ValueValidationError.create);
       if (newPersonalNumber.isErr()) {
@@ -342,6 +335,13 @@ export class EntityService {
         }
         changes.push(entity.updateDetails({ goalUserId: newGoalUserId.value }));
       }
+    }
+    if (entityType) {
+      const newEntityType = castToEntityType(entityType).mapErr(AppError.ValueValidationError.create);
+      if (newEntityType.isErr()) {
+        return err(newEntityType.error);
+      }
+      changes.push(entity.updateDetails({ entityType: newEntityType.value }));
     }
     if (serviceType) {
       const newServiceType = ServiceType.create(serviceType).mapErr(AppError.ValueValidationError.create);
