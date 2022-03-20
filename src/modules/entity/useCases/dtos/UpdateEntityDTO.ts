@@ -4,22 +4,22 @@ import Joi from 'joi';
 export type UpdateEntityDTO = { entityId: string } & Partial<{
   firstName: string;
   entityType: string;
-  lastName: string;
-  personalNumber: string;
-  identityCard: string;
+  lastName: string | null;
+  personalNumber: string | null;
+  identityCard: string | null;
   // TODO: should be emplyeeId in update?
-  rank: string;
-  akaUnit: string;
-  clearance: string;
-  sex: string;
-  serviceType: string;
-  dischargeDay: Date;
-  birthDate: Date;
+  rank: string | null;
+  akaUnit: string | null;
+  clearance: string | null;
+  sex: string | null;
+  serviceType: string | null;
+  dischargeDay: Date | null;
+  birthDate: Date | null;
   address: string; // value?
-  phone: string | string[]; //value object
-  mobilePhone: string | string[]; //value object
-  goalUserId: string;
-  pictures: Pictures;
+  phone: string | string[] | null; //value object
+  mobilePhone: string | string[] | null; //value object
+  goalUserId: string | null;
+  pictures: Pictures | null;
 }>
 
 export const joiSchema = Joi.object({

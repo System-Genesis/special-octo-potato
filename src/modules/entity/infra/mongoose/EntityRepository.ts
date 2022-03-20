@@ -62,7 +62,7 @@ export class EntityRepository implements IEntityRepository {
           _id: entity.entityId.toString(),
         })
       if (existingEntity) {
-        const updateOp = await this._model.updateOne(
+        const updateOp = await this._model.findOneAndReplace(
           { 
             _id: entity.entityId.toString(), 
             version: entity.fetchedVersion,
@@ -71,7 +71,7 @@ export class EntityRepository implements IEntityRepository {
           )
           .session(session);
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(entity.fetchedVersion));
         }
       } else {
