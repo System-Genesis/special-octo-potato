@@ -30,7 +30,7 @@ export abstract class ErrorResponseHandler {
    * @returns 
    */
   static defaultErrorHandler(res: Response, err: BaseError, opts: DefaultHandlerOpts = {}) {
-    console.log(err)
+    // console.log(err)
     if(err instanceof AppError.RetryableConflictError) {
       return ResponseHandler.conflict(res);
     } else if (err instanceof AppError.ResourceNotFound) {
