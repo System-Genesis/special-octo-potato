@@ -35,8 +35,8 @@ afterAll(async () => {
 });
 
 describe("Sequentially run groups tests", () => {
-  //testCreateEntity();
-  //testUpdateEntity();
+  testCreateEntity();
+  testUpdateEntity();
   testConnectEntity();
   afterAll(async () => {
     await server.close();
