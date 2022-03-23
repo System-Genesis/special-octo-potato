@@ -20,7 +20,7 @@ import { DigitalIdentityId } from '../../digitalIdentity/domain/DigitalIdentityI
 import { Phone, MobilePhone } from '../domain/phone';
 import { UniqueArray } from '../../../utils/UniqueArray';
 import { filterNullOrUndefined, toArray } from '../../../utils/arrayUtils';
-import { has } from '../../../utils/ObjectUtils';
+import { extractNullKeys, has } from '../../../utils/ObjectUtils';
 import { AppError } from '../../../core/logic/AppError';
 import { IllegalEntityStateError } from '../domain/errors/IllegalEntityStateError';
 import { DigitalIdentityRepository } from '../../digitalIdentity/repository/DigitalIdentityRepository';
@@ -299,6 +299,7 @@ export class EntityService {
       return err(AppError.ResourceNotFound.create(updateDTO.entityId, 'entity'));
     }
     const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, akaUnit, entityType, ...rest } = updateDTO;
+    // for arrOfNulls
     // try to update entity for each existing field in the DTO
     if (personalNumber) {
       const newPersonalNumber = PersonalNumber.create(personalNumber).mapErr(AppError.ValueValidationError.create);
@@ -402,9 +403,9 @@ export class EntityService {
         changes.push(entity.updateProfilePicture(pictures.profile));
       }
     }
-
-    // update the rest fields that dont require value validation
-    changes.push(entity.updateDetails(rest));
+    // update the rest fields that dont require value validation and delete fields requested
+    const propsToDelete = extractNullKeys(updateDTO);
+    changes.push(entity.updateDetails({... rest, ...propsToDelete}));
 
     // check that all entity update calls returned success result
     const result = combine(changes);

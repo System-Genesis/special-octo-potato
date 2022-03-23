@@ -46,10 +46,33 @@ export const testUpdateEntity = () => {
           console.log(err);
         }
       });
+      const date = new Date();
       const civEntity = {
         firstName: "Tommy",
         entityType: entityTypes.Civilian,
         lastName: "Afek",
+        identityCard: "206917817",
+      };
+
+      const soldEntity = {
+        entityType: entityTypes.Soldier,
+        firstName: "Tommy",
+        lastName: "Afek",
+        personalNumber: "123456",
+        phone: "09-8651414",
+        mobilePhone: "054-7340538",
+        serviceType: serviceTypes[1],
+        pictures: {
+          profile: {
+            meta: {
+              path: "he",
+              format: "he",
+              updatedAt: date,
+            },
+          },
+        },
+        rank: ranks[0],
+        sex: sexes.Male,
         identityCard: "206917817",
       };
       let entityId;
@@ -71,7 +94,6 @@ export const testUpdateEntity = () => {
             entityType: entityTypes.Civilian,
           })
         );
-        const date = new Date();
         const updateData = {
           entityType: entityTypes.Soldier,
           personalNumber: "123456",
@@ -120,6 +142,44 @@ export const testUpdateEntity = () => {
             sex: sexes.Male,
           })
         );
+      });
+
+      it("delete fields from VALID soldier entity", async () => {
+        const res = await request(app)
+          .post(`/api/entities`)
+          .send(soldEntity)
+          .expect(200);
+        expect(Object.keys(res.body).length === 1);
+        expect(res.body.id).toBeTruthy();
+        entityId = Types.ObjectId(res.body.id);
+        let foundEntity = await findOneByQuery("entities", {
+          _id: entityId,
+        });
+        expect(foundEntity).toEqual(
+          expect.objectContaining({
+            firstName: "Tommy",
+            lastName: "Afek",
+            entityType: entityTypes.Soldier,
+          })
+        );
+        const date = new Date();
+        const updateData = {
+          phone: null,
+          mobilePhone: null,
+          serviceType: null,
+          pictures: null,
+          rank: null,
+          sex: null
+        };
+        const resUpdate = await request(app)
+          .patch(`/api/entities/${entityId}`)
+          .send(updateData);
+        foundEntity = await findOneByQuery("entities", {
+          _id: entityId,
+        });
+        Object.keys(updateData).forEach((key) => {
+          expect(foundEntity).not.toHaveProperty(key)
+        })
       });
 
       const goalUserEntity = {

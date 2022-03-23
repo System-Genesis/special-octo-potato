@@ -29,8 +29,8 @@ export function deleteNullProps<T extends {}>(obj: T): NonNullProps<T> {
 }
 
 export function extractNullKeys(obj: any): any {
-  const nullKeys = Object.keys(obj).filter(key => obj[key] === null);
-  return nullKeys;
+  const nullsObj = Object.fromEntries(Object.entries(obj).filter(([key, value]) => value === null));
+  return nullsObj;
 }
 
 export function deleteProps(obj: any, nullKeys: string[]): any {

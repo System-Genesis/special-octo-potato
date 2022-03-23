@@ -286,7 +286,6 @@ export class Entity extends AggregateRoot {
         return err(AppError.CannotUpdateFieldError.create(f));
       }
     }
-    const propsToDelete = extractNullKeys(updateDto);
     // check for illegal 'entityType' transition
     if (
       has(updateDto, "entityType") &&
@@ -304,7 +303,7 @@ export class Entity extends AggregateRoot {
     }
     const newStateWithNulls = { ...this._state, ...updateDto };
     const newStateWithoutNulls = deleteNullProps(newStateWithNulls);
-    const isValid = Entity.isValidEntityState(newStateWithoutNulls as EntityState);
+    const isValid = Entity.isValidEntityState(newStateWithoutNulls);
     if (isValid.isOk()) {
       this._state = newStateWithoutNulls as EntityState;
     }
