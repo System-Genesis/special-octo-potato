@@ -178,7 +178,7 @@ export const testUpdateEntity = () => {
           _id: entityId,
         });
         Object.keys(updateData).forEach((key) => {
-          expect(foundEntity).not.toHaveProperty(key)
+          expect(foundEntity[key] === undefined || foundEntity[key].length === 0).toBeTruthy()
         })
       });
 
