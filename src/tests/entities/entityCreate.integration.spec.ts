@@ -512,7 +512,7 @@ export const testCreateEntity = () => {
           .expect(400);
         expect(res.body.message).toEqual(
           expect.stringContaining(
-            `${entityTypes.Soldier} missing required field: personalNumber`
+            `${entityTypes.Soldier} missing required field: personalNumber` 
           )
         );
       });
