@@ -60,7 +60,7 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
       });
       if (existingDI) {
         const updateOp = await this._model
-          .updateOne(
+          .findOneAndReplace(
             {
               uniqueId: digitalIdentity.uniqueId.toString(),
               version: digitalIdentity.fetchedVersion,
@@ -69,7 +69,7 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
           )
           .session(session);
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
         }
       } else {

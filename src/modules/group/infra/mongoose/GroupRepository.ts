@@ -154,7 +154,7 @@ export class GroupRepository implements IGroupRepository {
       const existingGroup = await this._model.findOne({ _id: group.groupId.toString() });
       if (existingGroup) {
         const updateOp = await this._model
-          .updateOne(
+          .findOneAndReplace(
             {
               _id: group.groupId.toString(),
               version: group.fetchedVersion,
@@ -163,7 +163,7 @@ export class GroupRepository implements IGroupRepository {
           )
           .session(session);
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(group.fetchedVersion));
         }
       } else {

@@ -69,7 +69,7 @@ export class RoleRepository implements IRoleRepository {
       const existingRole = await this._model.findOne({ roleId: role.roleId.toString() });
 
       if (existingRole) {
-        const updateOp = await this._model.updateOne(
+        const updateOp = await this._model.findOneAndReplace(
           {
             roleId: role.roleId.toString(),
             version: role.fetchedVersion,
@@ -78,7 +78,7 @@ export class RoleRepository implements IRoleRepository {
           { session }
         );
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(role.fetchedVersion));
         }
       } else {
