@@ -150,7 +150,7 @@ export class RoleService {
       // TODO: better error type
     }
     role.disconnectDigitalIdentity();
-    const saveRoleRes = (await this.roleRepository.removeFields(role, ['digitalIdentityUniqueId'])).mapErr((err) =>
+    const saveRoleRes = (await this.roleRepository.save(role)).mapErr((err) =>
     AppError.RetryableConflictError.create(err.message)
     );
     return saveRoleRes;

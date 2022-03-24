@@ -34,6 +34,8 @@ export interface EntityDoc {
     };
   };
   version: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(

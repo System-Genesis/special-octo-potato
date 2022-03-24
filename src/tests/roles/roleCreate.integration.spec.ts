@@ -20,7 +20,7 @@ const esDomain = userDomains[1];
 const esRoleDomain = roleDomains[1];
 
 export const testCreateRole = () => {
-    describe('DI CREATE USECASES', () => {
+    describe('ROLE CREATE USECASES', () => {
         beforeEach(async () => {
         try {
             await emptyDB()

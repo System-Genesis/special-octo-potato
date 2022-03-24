@@ -259,7 +259,7 @@ export class EntityService {
     // disconnect the entityy to the digital identity
     di.disconnectEntity();
     // TODO: do it in a better way already
-    const saveDiRes = (await this.diRepository.removeFields(di, ['entityId', 'upn'])).mapErr((err) =>
+    const saveDiRes = (await this.diRepository.save(di)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
     if (saveDiRes.isErr()) return saveDiRes;

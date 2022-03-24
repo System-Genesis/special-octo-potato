@@ -87,6 +87,7 @@ export const testUpdateEntity = () => {
         let foundEntity = await findOneByQuery("entities", {
           _id: entityId,
         });
+        const beforeCreatedAt = foundEntity.createdAt;
         expect(foundEntity).toEqual(
           expect.objectContaining({
             firstName: "Tommy",
@@ -119,6 +120,7 @@ export const testUpdateEntity = () => {
         foundEntity = await findOneByQuery("entities", {
           _id: entityId,
         });
+        const afterCreatedAt = foundEntity.createdAt;
         expect(foundEntity).toEqual(
           expect.objectContaining({
             firstName: "Tommy",
@@ -142,6 +144,7 @@ export const testUpdateEntity = () => {
             sex: sexes.Male,
           })
         );
+        expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy()
       });
 
       it("delete fields from VALID soldier entity", async () => {
@@ -162,6 +165,7 @@ export const testUpdateEntity = () => {
             entityType: entityTypes.Soldier,
           })
         );
+        const beforeCreatedAt = foundEntity.createdAt;
         const date = new Date();
         const updateData = {
           phone: null,
@@ -177,9 +181,11 @@ export const testUpdateEntity = () => {
         foundEntity = await findOneByQuery("entities", {
           _id: entityId,
         });
+        const afterCreatedAt = foundEntity.createdAt;
         Object.keys(updateData).forEach((key) => {
           expect(foundEntity[key] === undefined || foundEntity[key].length === 0).toBeTruthy()
         })
+        expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy()
       });
 
       const goalUserEntity = {

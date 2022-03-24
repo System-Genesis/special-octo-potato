@@ -159,7 +159,7 @@ export class GroupRepository implements IGroupRepository {
               _id: group.groupId.toString(),
               version: group.fetchedVersion,
             },
-            persistanceState
+            {...persistanceState, createdAt: existingGroup.createdAt },
           )
           .session(session);
 

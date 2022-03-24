@@ -67,7 +67,8 @@ export class EntityRepository implements IEntityRepository {
             _id: entity.entityId.toString(), 
             version: entity.fetchedVersion,
           },
-            persistanceState
+          // TODO: find out what to do with createdAt w/o findOneAndReplace
+          {...persistanceState, createdAt: existingEntity.createdAt },
           )
           .session(session);
 
