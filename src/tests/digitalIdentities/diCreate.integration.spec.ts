@@ -12,6 +12,15 @@ const userDomains: string[] = config.get(
   );
 const esDomain = userDomains[1];
 
+beforeEach(async () => {
+    try {
+      await emptyDB();
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  
 export const testCreateDI = () => {
     describe('DI CREATE USECASES', () => {
         beforeEach(async () => {

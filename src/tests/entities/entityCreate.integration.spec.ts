@@ -31,16 +31,18 @@ afterAll(async () => {
   await server.close();
 });
 
+beforeEach(async () => {
+  try {
+    await emptyDB();
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 export const testCreateEntity = () => {
   describe("ENTITY CREATE USECASES", () => {
     describe("VALID CREATIONS USECASES", () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
       const civEntity = {
         firstName: "Tommy",
         entityType: entityTypes.Civilian,
@@ -173,13 +175,7 @@ export const testCreateEntity = () => {
       });
     });
     describe("INVALID CREATIONS", () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
       const soldInvalidEntityType = {
         firstName: "noam",
         entityType: "not good entity type",

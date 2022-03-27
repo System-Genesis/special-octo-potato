@@ -36,16 +36,18 @@ afterAll(async () => {
   await server.close();
 });
 
+beforeEach(async () => {
+  try {
+    await emptyDB();
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 export const testUpdateEntity = () => {
   describe("ENTITY UPDATE USECASES", () => {
     describe("VALID UPDATE USECASES", () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
       const date = new Date();
       const civEntity = {
         firstName: "Tommy",
@@ -357,13 +359,7 @@ export const testUpdateEntity = () => {
     });
 
     describe(`INVALID update cases`, () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
       describe(`shouldnt update personal number`, () => {
         beforeEach(async () => {
           try {

@@ -33,16 +33,18 @@ afterAll(async () => {
   await server.close();
 });
 
+beforeEach(async () => {
+  try {
+    await emptyDB();
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 export const testConnectEntity = () => {
   describe("ENTITY CONNECT DI USECASES", () => {
     describe("VALID connections USECASES", () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
 
       let entityId;
       const soldEntity = {
@@ -105,13 +107,7 @@ export const testConnectEntity = () => {
     });
 
     describe(`invalid connections uses`, () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
 
       let entityId;
       const soldEntity = {
@@ -245,13 +241,7 @@ export const testConnectEntity = () => {
     });
 
     describe(`invalid disconnect errors`, () => {
-      beforeEach(async () => {
-        try {
-          await emptyDB();
-        } catch (err) {
-          console.log(err);
-        }
-      });
+
 
       let entityId;
       const soldEntity = {

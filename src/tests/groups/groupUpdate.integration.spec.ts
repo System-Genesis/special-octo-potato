@@ -9,6 +9,14 @@ const sources: string[] = config.get('valueObjects.source.values');
 const es_name_source = sources[1]
 const sf_name_source = sources[2]
 
+beforeEach(async () => {
+    try {
+      await emptyDB();
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  
 export const testUpdateGroup = () => {
     describe('GROUP UPDATE USECASES', () => {
         beforeEach(async () => {

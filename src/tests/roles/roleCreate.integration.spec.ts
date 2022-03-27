@@ -19,6 +19,14 @@ const roleDomains: string[] = config.get(
 const esDomain = userDomains[1];
 const esRoleDomain = roleDomains[1];
 
+beforeEach(async () => {
+    try {
+      await emptyDB();
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  
 export const testCreateRole = () => {
     describe('ROLE CREATE USECASES', () => {
         beforeEach(async () => {
