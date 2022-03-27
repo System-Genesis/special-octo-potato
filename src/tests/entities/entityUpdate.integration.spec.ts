@@ -1,3 +1,4 @@
+import { wait } from './../setup/utils';
 import { PersonalNumber } from "./../../modules/entity/domain/PersonalNumber";
 import { emptyDB, findByQuery, findOneByQuery } from "../setup/seedUtils";
 import request from "supertest";
@@ -168,6 +169,7 @@ export const testUpdateEntity = () => {
           })
         );
         const beforeCreatedAt = foundEntity.createdAt;
+        const beforeUpdatedAt = foundEntity.updatedAt;
         const date = new Date();
         const updateData = {
           phone: null,
@@ -177,6 +179,7 @@ export const testUpdateEntity = () => {
           rank: null,
           sex: null
         };
+        await wait(1000)
         const resUpdate = await request(app)
           .patch(`/api/entities/${entityId}`)
           .send(updateData);
@@ -184,10 +187,12 @@ export const testUpdateEntity = () => {
           _id: entityId,
         });
         const afterCreatedAt = foundEntity.createdAt;
+        const afterUpdatedAt = foundEntity.updatedAt;
         Object.keys(updateData).forEach((key) => {
           expect(foundEntity[key] === undefined || foundEntity[key].length === 0).toBeTruthy()
         })
         expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy()
+        expect(Date.parse(beforeUpdatedAt) !== Date.parse(afterUpdatedAt)).toBeTruthy()
       });
 
       const goalUserEntity = {
@@ -309,6 +314,12 @@ export const testUpdateEntity = () => {
           expect(Object.keys(resEntityCreate.body).length === 1);
           expect(resEntityCreate.body.id).toBeTruthy();
           const entityId = resEntityCreate.body.id;
+          let foundEntity = await findOneByQuery("entities", {
+            _id: Types.ObjectId(entityId),
+          });
+          const beforeCreatedAt = foundEntity.createdAt;
+          const beforeUpdatedAt = foundEntity.updatedAt;
+          await wait(1000)
           const resEsDICreate = await request(app)
             .post(`/api/digitalIdentities`)
             .send(esDI)
@@ -348,12 +359,16 @@ export const testUpdateEntity = () => {
             .patch(`/api/entities/${entityId}`)
             .send(updateData)
             .expect(200);
-          const foundEntity = await findOneByQuery("entities", {
+          foundEntity = await findOneByQuery("entities", {
             _id: Types.ObjectId(entityId),
           });
+          const afterCreatedAt = foundEntity.createdAt;
+          const afterUpdatedAt = foundEntity.updatedAt;
           expect(foundEntity.primaryDigitalIdentityId).toEqual(
             DigitalIdentityId.create(esDI.uniqueId)._unsafeUnwrap().toValue()
           );
+          expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy()
+          expect(Date.parse(beforeUpdatedAt) !== Date.parse(afterUpdatedAt)).toBeTruthy()
         });
       });
     });
