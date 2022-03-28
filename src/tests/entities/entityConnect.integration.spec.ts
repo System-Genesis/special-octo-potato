@@ -29,10 +29,6 @@ const sexes: {
   Female: string;
 } = config.get("valueObjects.Sex");
 
-afterAll(async () => {
-  await server.close();
-});
-
 beforeEach(async () => {
   try {
     await emptyDB();

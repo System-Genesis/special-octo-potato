@@ -27,10 +27,6 @@ const digitalIdentityIdDomains: string[] = config.get(
   "valueObjects.digitalIdentityId.domain.values"
 );
 
-afterAll(async () => {
-  await server.close();
-});
-
 beforeEach(async () => {
   try {
     await emptyDB();
@@ -69,7 +65,7 @@ export const testCreateEntity = () => {
           })
         );
       });
-
+      // TODO: organize all entities to another file
       const soldEntity = {
         firstName: "Noam",
         entityType: entityTypes.Soldier,
@@ -186,6 +182,7 @@ export const testCreateEntity = () => {
           .post(`/api/entities`)
           .send(soldInvalidEntityType)
           .expect(400);
+          // TODO: map error titles / find out the called error
         expect(res.body.message).toEqual(
           expect.stringContaining(`not good entity type is invalid EntityType`)
         );

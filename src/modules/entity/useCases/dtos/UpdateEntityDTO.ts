@@ -15,7 +15,7 @@ export type UpdateEntityDTO = { entityId: string } & Partial<{
   serviceType: string | null;
   dischargeDay: Date | null;
   birthDate: Date | null;
-  address: string; // value?
+  address: string | null; // value?
   phone: string | string[] | null; //value object
   mobilePhone: string | string[] | null; //value object
   goalUserId: string;

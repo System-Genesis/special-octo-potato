@@ -30,6 +30,7 @@ beforeAll(async () => {
     console.log(err);
   }
 });
+
 afterAll(async () => {
   await server.close();
 });
