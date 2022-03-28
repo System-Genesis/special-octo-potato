@@ -1,9 +1,13 @@
-import { Organization } from './../../domain/Organization';
-import { EmployeeNumber } from '../../domain/EmployeeNumber';
-import { EventOutbox } from './../../../../shared/infra/mongoose/eventOutbox/Outbox';
+import { Organization } from "./../../domain/Organization";
+import { EmployeeNumber } from "../../domain/EmployeeNumber";
+import { EventOutbox } from "./../../../../shared/infra/mongoose/eventOutbox/Outbox";
 import { Model, Types, FilterQuery, Connection } from "mongoose";
-import { EntityRepository as IEntityRepository, IhaveEntityIdentifiers, EntityIdentifier } from "../../repository/EntityRepository"
-import { EntityMapper as Mapper} from "./EntityMapper";
+import {
+  EntityRepository as IEntityRepository,
+  IhaveEntityIdentifiers,
+  EntityIdentifier,
+} from "../../repository/EntityRepository";
+import { EntityMapper as Mapper } from "./EntityMapper";
 import { default as EntitySchema, EntityDoc } from "./EntitySchema";
 import { EntityId } from "../../domain/EntityId";
 import { Entity } from "../../domain/Entity";
@@ -14,35 +18,57 @@ import { AggregateVersionError } from "../../../../core/infra/AggregateVersionEr
 import { AppError } from "../../../../core/logic/AppError";
 import { BaseError } from "../../../../core/logic/BaseError";
 import { MongooseError } from "../../../../shared/infra/mongoose/errors/MongooseError";
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { sanitize } from "../../../../utils/ObjectUtils";
 
 export class EntityRepository implements IEntityRepository {
   private _model: Model<EntityDoc>;
 
-  constructor(db: Connection, eventOutbox: EventOutbox, config: { modelName: string }) {
+  constructor(
+    db: Connection,
+    eventOutbox: EventOutbox,
+    config: { modelName: string }
+  ) {
     const { modelName } = config;
-    if(db.modelNames().includes(modelName)) {
+    if (db.modelNames().includes(modelName)) {
       this._model = db.model(modelName);
     } else {
       this._model = db.model(modelName, EntitySchema);
     }
   }
 
-  async exists(identifier: EntityIdentifier, organization?: Organization): Promise<boolean> {
-    let identifierName: 'personalNumber' | 'identityCard' | 'goalUserId' | 'employeeNumber';
-    if(identifier instanceof PersonalNumber) { identifierName = 'personalNumber'; }
-    else if(identifier instanceof IdentityCard) { identifierName = 'identityCard'; }
-    else if(identifier instanceof EmployeeNumber) { identifierName = 'employeeNumber'; }
-    else { identifierName = 'goalUserId'; }
+  async exists(
+    identifier: EntityIdentifier,
+    organization?: Organization
+  ): Promise<boolean> {
+    let identifierName:
+      | "personalNumber"
+      | "identityCard"
+      | "goalUserId"
+      | "employeeNumber";
+    if (identifier instanceof PersonalNumber) {
+      identifierName = "personalNumber";
+    } else if (identifier instanceof IdentityCard) {
+      identifierName = "identityCard";
+    } else if (identifier instanceof EmployeeNumber) {
+      identifierName = "employeeNumber";
+    } else {
+      identifierName = "goalUserId";
+    }
     // TODO (D): if use function exists, use exists instead of findOne
-    const res = await this._model.findOne({... { [identifierName]: identifier.toString() }, ...organization && ({ organization: organization.value }) }).lean().select('_id');
+    const res = await this._model
+      .findOne({
+        ...{ [identifierName]: identifier.toString() },
+        ...(organization && { organization: organization.value }),
+      })
+      .lean()
+      .select("_id");
     return !!res;
   }
 
   generateEntityId(): EntityId {
     return EntityId.create(new Types.ObjectId().toHexString());
   }
-  
+
   async getByEntityId(entityId: EntityId): Promise<Entity | null> {
     let raw;
     raw = await this._model.findOne({ _id: entityId.toString() }).lean();
@@ -50,35 +76,49 @@ export class EntityRepository implements IEntityRepository {
     return Mapper.toDomain(raw);
   }
 
-  // TODO: seperate into create and update 
-  async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+  async save(
+    entity: Entity
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
     const persistanceState = sanitize(Mapper.toPersistance(entity));
     let result: Result<void, AggregateVersionError> = ok(undefined);
     let session = await this._model.startSession();
 
     try {
       session.startTransaction();
-      const existingEntity = await this._model
-        .findOne({
-          _id: entity.entityId.toString(),
-        })
-      if (existingEntity) {
-        const updateOp = await this._model.findOneAndReplace(
-          { 
-            _id: entity.entityId.toString(), 
+      await this._model.create([persistanceState], { session });
+      await session.commitTransaction();
+    } catch (error) {
+      result = err(MongooseError.GenericError.create(error));
+
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
+    return result;
+  }
+
+  async update(
+    entity: Entity
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    const persistanceState = sanitize(Mapper.toPersistance(entity));
+    let result: Result<void, AggregateVersionError> = ok(undefined);
+    let session = await this._model.startSession();
+
+    try {
+      session.startTransaction();
+
+      const updateOp = await this._model
+        .findOneAndReplace(
+          {
+            _id: entity.entityId.toString(),
             version: entity.fetchedVersion,
           },
-          // TODO: maintain createAt & updatedAt in domain?
-          {...persistanceState, createdAt: existingEntity.createdAt },
-          )
-          .session(session);
+          persistanceState
+        )
+        .session(session);
 
-        if (!updateOp) {
-          result = err(AggregateVersionError.create(entity.fetchedVersion));
-        }
-      } else {
-        await this._model.create([persistanceState], { session });
-        result = ok(undefined);
+      if (!updateOp) {
+        result = err(AggregateVersionError.create(entity.fetchedVersion));
       }
       await session.commitTransaction();
     } catch (error) {
@@ -91,12 +131,11 @@ export class EntityRepository implements IEntityRepository {
     return result;
   }
 
-  
-  async delete(id: EntityId): Promise<Result<any,BaseError>>{
-    const res = await this._model.deleteOne({_id: id.toValue()});
-    if(!res) {
+  async delete(id: EntityId): Promise<Result<any, BaseError>> {
+    const res = await this._model.deleteOne({ _id: id.toValue() });
+    if (!res) {
       return err(AppError.LogicError.create(`${res}`));
     }
-    return ok(undefined)
+    return ok(undefined);
   }
 }

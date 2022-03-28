@@ -1,4 +1,4 @@
-import { Organization } from './../domain/Organization';
+import { Organization } from "./../domain/Organization";
 import { Repository } from "../../../core/infra/Repository";
 import { Entity } from "../domain/Entity";
 import { EntityId } from "../domain/EntityId";
@@ -13,17 +13,24 @@ export type IhaveEntityIdentifiers = Partial<{
   identityCard: IdentityCard;
   personalNumber: PersonalNumber;
   goalUserId: DigitalIdentityId;
-}>
+}>;
 
-export type EntityIdentifier = IdentityCard | PersonalNumber | DigitalIdentityId;
+export type EntityIdentifier =
+  | IdentityCard
+  | PersonalNumber
+  | DigitalIdentityId;
 
-type AtLeastOne<T, U = {[K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U]
-
+type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
+  U[keyof U];
 
 export interface EntityRepository extends Repository<Entity> {
   save(entity: Entity): Promise<Result<void, AggregateVersionError>>;
+  update(entity: Entity): Promise<Result<void, AggregateVersionError>>;
   getByEntityId(enityId: EntityId): Promise<Entity | null>;
   generateEntityId(): EntityId;
-  exists(identifier: EntityIdentifier, organization?: Organization): Promise<boolean>;
-  delete(id: EntityId): Promise<Result<any,BaseError>>;
+  exists(
+    identifier: EntityIdentifier,
+    organization?: Organization
+  ): Promise<boolean>;
+  delete(id: EntityId): Promise<Result<any, BaseError>>;
 }

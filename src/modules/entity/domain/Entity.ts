@@ -1,14 +1,20 @@
-import { UpdateEntityDTO } from './../useCases/dtos/UpdateEntityDTO';
-import { Organization } from './Organization';
-import { EmployeeNumber } from './EmployeeNumber';
-import { isFromArray } from './../../../utils/isSomeValues';
-import config from 'config';
+import { UpdateEntityDTO } from "./../useCases/dtos/UpdateEntityDTO";
+import { Organization } from "./Organization";
+import { EmployeeNumber } from "./EmployeeNumber";
+import { isFromArray } from "./../../../utils/isSomeValues";
+import config from "config";
 import { DigitalIdentityRepresent } from "./../../digitalIdentity/domain/DigitalIdentity";
 import { PrimaryDigitalIdentityService } from "./PrimaryDigitalIdentityService";
 import { IConnectedDI } from "./ConnectedDI";
 import { AggregateRoot, CreateOpts } from "../../../core/domain/AggregateRoot";
 import { EntityId } from "./EntityId";
-import { deleteNullProps, deleteProps, extractNullKeys, has, hasAll } from "../../../utils/ObjectUtils";
+import {
+  deleteNullProps,
+  deleteProps,
+  extractNullKeys,
+  has,
+  hasAll,
+} from "../../../utils/ObjectUtils";
 import { Result, err, ok } from "neverthrow";
 import { IllegalEntityStateError } from "./errors/IllegalEntityStateError";
 import { AppError } from "../../../core/logic/AppError";
@@ -25,25 +31,27 @@ import { isSomeEnum } from "../../../utils/isSomeEnum";
 import { DigitalIdentityState } from "../../digitalIdentity/domain/DigitalIdentity";
 
 export type sexType = {
-  Male: string,
-  Female: string,
-}
+  Male: string;
+  Female: string;
+};
 
-export const sexTypes: sexType = config.get('valueObjects.Sex');
+export const sexTypes: sexType = config.get("valueObjects.Sex");
 
 export type entityType = {
-  Soldier : string,
-  Civilian : string,
-  GoalUser : string,
-  External: string,
-}
+  Soldier: string;
+  Civilian: string;
+  GoalUser: string;
+  External: string;
+};
 
-export const entityTypes: entityType = config.get('valueObjects.EntityType');
+export const entityTypes: entityType = config.get("valueObjects.EntityType");
 
 // TODO: move into utils generic
 const getEntityByValue = (entityTypeValue: string): keyof entityType => {
-  return Object.keys(entityTypes).find((key) => entityTypes[key as keyof entityType] === entityTypeValue) as keyof entityType;
-}
+  return Object.keys(entityTypes).find(
+    (key) => entityTypes[key as keyof entityType] === entityTypeValue
+  ) as keyof entityType;
+};
 
 const isEntityType = isFromArray(Object.values(entityTypes));
 const isSexType = isFromArray(Object.values(sexTypes));
@@ -54,7 +62,6 @@ export const castToEntityType = (val: string): Result<string, string> => {
   }
   return err(`${val} is invalid EntityType`);
 };
-
 
 export const castToSex = (val: string): Result<string, string> => {
   if (isSexType(val)) {
@@ -114,11 +121,11 @@ type ProfilePicture = {
     path: string;
     format: string;
     updatedAt?: Date;
-  }
-}
+  };
+};
 
 export type Pictures = {
-  profile?: ProfilePicture
+  profile?: ProfilePicture;
 };
 
 type EntityState = {
@@ -145,6 +152,8 @@ type EntityState = {
   goalUserId?: DigitalIdentityId;
   primaryDigitalIdentityId?: DigitalIdentityId;
   pictures?: Pictures;
+  updatedAt?: Date;
+  createdAt?: Date;
 };
 
 type CreateEntityProps = Omit<EntityState, "mail" | "primaryDigitalIdentity">;
@@ -215,10 +224,7 @@ const ENTITY_TYPE_VALID_STATE: {
   },
   External: {
     required: ["firstName", "employeeNumber", "organization"],
-    forbidden: [
-      "identityCard",
-      "personalNumber",
-    ],
+    forbidden: ["identityCard", "personalNumber"],
   },
 };
 
@@ -232,7 +238,7 @@ const SET_ONLY_ONCE_FIELDS = new Set([
 //TODO: should add  more fields like employeeId
 // type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
 // TODO: should use omit EntityState and add null
-type UpdateDto =  Partial<{
+type UpdateDto = Partial<{
   firstName: string;
   lastName: string | null;
   entityType: string; // TODO: make entityType, sex valueObjects
@@ -282,7 +288,10 @@ export class Entity extends AggregateRoot {
   public updateDetails(updateDto: UpdateDto): UpdateResult {
     // check if the key is readonly and already has been set
     for (const f of Object.keys(updateDto)) {
-      if (SET_ONLY_ONCE_FIELDS.has(f as keyof UpdateDto) && this._state[f as keyof UpdateDto ]) {
+      if (
+        SET_ONLY_ONCE_FIELDS.has(f as keyof UpdateDto) &&
+        this._state[f as keyof UpdateDto]
+      ) {
         return err(AppError.CannotUpdateFieldError.create(f));
       }
     }
@@ -314,12 +323,12 @@ export class Entity extends AggregateRoot {
   public updateProfilePicture(
     update: ProfilePicture
   ): Result<void, IllegalEntityStateError> {
-    if (!this._state.pictures) { 
+    if (!this._state.pictures) {
       this._state.pictures = {};
     }
     const profile = { ...this._state.pictures.profile, ...update };
     // update only if the resulting data has the required keys
-    if (hasAll(profile , ["meta"])) {
+    if (hasAll(profile, ["meta"])) {
       this._state.pictures.profile = update;
       this.markModified();
       return ok(undefined);
@@ -339,7 +348,8 @@ export class Entity extends AggregateRoot {
       }
     }
     // entity has all required fields for it's type
-    const { required, forbidden } = ENTITY_TYPE_VALID_STATE[getEntityByValue(state.entityType)];
+    const { required, forbidden } =
+      ENTITY_TYPE_VALID_STATE[getEntityByValue(state.entityType)];
     for (const k of required) {
       if (!has(state, k)) {
         return err(
@@ -465,9 +475,14 @@ export class Entity extends AggregateRoot {
       return;
     }
     // connect one of the DIs // TODO: check if has hierarchy?
-    if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
-      this._state.primaryDigitalIdentityId = connected.find(di => !PrimaryDigitalIdentityService.isWeakSource(di))?.uniqueId;
-    } 
+    if (
+      !currentPrimary ||
+      PrimaryDigitalIdentityService.isWeakSource(currentPrimary)
+    ) {
+      this._state.primaryDigitalIdentityId = connected.find(
+        (di) => !PrimaryDigitalIdentityService.isWeakSource(di)
+      )?.uniqueId;
+    }
     // else, the current primary
   }
   /* 
@@ -581,6 +596,10 @@ export class Entity extends AggregateRoot {
 
   get pictures() {
     return this._state.pictures;
+  }
+
+  get createdAt() {
+    return this._state.createdAt;
   }
 
   // get hierarchy() {

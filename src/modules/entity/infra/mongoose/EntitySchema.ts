@@ -35,7 +35,6 @@ export interface EntityDoc {
   };
   version: number;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
@@ -45,8 +44,8 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
     entityType: String,
     displayName: String,
     personalNumber: { type: String, unique: true, sparse: true }, // use value object
-    identityCard: { type: String, unique: true, sparse: true  },
-    employeeNumber: { type: String, sparse: true  },
+    identityCard: { type: String, unique: true, sparse: true },
+    employeeNumber: { type: String, sparse: true },
     organization: { type: String, sparse: true },
     rank: String, //use vale object / enum
     akaUnit: String,
@@ -60,7 +59,7 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
     address: String, // value
     phone: [String], //value object
     mobilePhone: [String], //value object
-    goalUserId: { type: String, unique: true, sparse: true  },
+    goalUserId: { type: String, unique: true, sparse: true },
     primaryDigitalIdentityId: String,
     pictures: {
       profile: {
@@ -80,7 +79,10 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
   }
 );
 
-schema.index({ employeeNumber: 1, organization: 1} , {unique: true, sparse: true} ); 
+schema.index(
+  { employeeNumber: 1, organization: 1 },
+  { unique: true, sparse: true }
+);
 // schema.index({ personalNumber: 1 })
 // schema.index({ identityCard: 1 })
 // schema.index({ goalUserId: 1 })

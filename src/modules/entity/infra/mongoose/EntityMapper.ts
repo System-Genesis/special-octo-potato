@@ -1,5 +1,5 @@
-import { Organization } from './../../domain/Organization';
-import { EmployeeNumber } from '../../domain/EmployeeNumber';
+import { Organization } from "./../../domain/Organization";
+import { EmployeeNumber } from "../../domain/EmployeeNumber";
 import { Types } from "mongoose";
 import { Entity } from "../../domain/Entity";
 import { EntityId } from "../../domain/EntityId";
@@ -14,7 +14,6 @@ import { DigitalIdentityId } from "../../../digitalIdentity/domain/DigitalIdenti
 import { EntityDoc } from "./EntitySchema";
 
 export class EntityMapper {
-
   static toPersistance(entity: Entity): EntityDoc {
     return {
       _id: Types.ObjectId(entity.entityId.toString()),
@@ -36,13 +35,14 @@ export class EntityMapper {
       birthDate: entity.birthDate,
       jobTitle: entity.jobTitle,
       address: entity.address, // value?
-      phone: entity.phone.map(p => p.value),
-      mobilePhone: entity.mobilePhone.map(p => p.value),
+      phone: entity.phone.map((p) => p.value),
+      mobilePhone: entity.mobilePhone.map((p) => p.value),
       goalUserId: entity.goalUserId?.toString(),
       primaryDigitalIdentityId: entity.primaryDigitalIdentityId?.toString(),
       version: entity.version,
       pictures: entity.pictures,
-    }
+      createdAt: entity.createdAt,
+    };
   }
 
   static toDomain(raw: EntityDoc): Entity {
@@ -56,43 +56,58 @@ export class EntityMapper {
           firstName: raw.firstName,
           lastName: raw.lastName,
           displayName: raw.displayName,
-          personalNumber: !!raw.personalNumber ?
-            PersonalNumber.create(raw.personalNumber)._unsafeUnwrap() : undefined,
-          identityCard: !!raw.identityCard ?
-            IdentityCard.create(raw.identityCard)._unsafeUnwrap() : undefined,
-          employeeNumber: !!raw.employeeNumber ?
-            EmployeeNumber.create(raw.employeeNumber)._unsafeUnwrap() : undefined,  
-          organization: !!raw.organization ?
-          Organization.create(raw.organization)._unsafeUnwrap() : undefined,  
-          rank: !!raw.rank ?
-            Rank.create(raw.rank)._unsafeUnwrap() : undefined,
+          personalNumber: !!raw.personalNumber
+            ? PersonalNumber.create(raw.personalNumber)._unsafeUnwrap()
+            : undefined,
+          identityCard: !!raw.identityCard
+            ? IdentityCard.create(raw.identityCard)._unsafeUnwrap()
+            : undefined,
+          employeeNumber: !!raw.employeeNumber
+            ? EmployeeNumber.create(raw.employeeNumber)._unsafeUnwrap()
+            : undefined,
+          organization: !!raw.organization
+            ? Organization.create(raw.organization)._unsafeUnwrap()
+            : undefined,
+          rank: !!raw.rank ? Rank.create(raw.rank)._unsafeUnwrap() : undefined,
           akaUnit: raw.akaUnit,
           clearance: raw.clearance,
           mail: !!raw.mail ? Mail.create(raw.mail)._unsafeUnwrap() : undefined,
           sex: raw.sex,
-          serviceType: !!raw.serviceType ?
-            ServiceType.create(raw.serviceType)._unsafeUnwrap() : undefined,
+          serviceType: !!raw.serviceType
+            ? ServiceType.create(raw.serviceType)._unsafeUnwrap()
+            : undefined,
           dischargeDay: raw.dischargeDay,
           birthDate: raw.birthDate,
           jobTitle: raw.jobTitle,
           address: raw.address, // value
-          phone: UniqueArray.fromArray((raw.phone || []).map(p => Phone.create(p)._unsafeUnwrap())),
-          mobilePhone: UniqueArray.fromArray((raw.mobilePhone || []).map(p => MobilePhone.create(p)._unsafeUnwrap())),
-          goalUserId: !!raw.goalUserId ?
-            DigitalIdentityId.create(raw.goalUserId)._unsafeUnwrap() : undefined,
-          primaryDigitalIdentityId: !!raw.primaryDigitalIdentityId ?
-            DigitalIdentityId.create(raw.primaryDigitalIdentityId)._unsafeUnwrap() : undefined,
-          pictures: !!raw.pictures ? {
-            ...raw.pictures
-          } : undefined,
+          phone: UniqueArray.fromArray(
+            (raw.phone || []).map((p) => Phone.create(p)._unsafeUnwrap())
+          ),
+          mobilePhone: UniqueArray.fromArray(
+            (raw.mobilePhone || []).map((p) =>
+              MobilePhone.create(p)._unsafeUnwrap()
+            )
+          ),
+          goalUserId: !!raw.goalUserId
+            ? DigitalIdentityId.create(raw.goalUserId)._unsafeUnwrap()
+            : undefined,
+          primaryDigitalIdentityId: !!raw.primaryDigitalIdentityId
+            ? DigitalIdentityId.create(
+                raw.primaryDigitalIdentityId
+              )._unsafeUnwrap()
+            : undefined,
+          pictures: !!raw.pictures
+            ? {
+                ...raw.pictures,
+              }
+            : undefined,
+          createdAt: raw.createdAt,
         },
-        { isNew: false, savedVersion: raw.version },
+        { isNew: false, savedVersion: raw.version }
       )._unsafeUnwrap();
     } catch (err) {
-      console.log('err: ', err);
-
+      console.log("err: ", err);
     }
     return createdEntity!;
-
   }
 }
