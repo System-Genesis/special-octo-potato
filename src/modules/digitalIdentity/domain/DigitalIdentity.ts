@@ -18,6 +18,9 @@ export type digitalIdentityType = {
 
 export const DigitalIdentityTypes: digitalIdentityType = config.get('valueObjects.digitalIdentityType');
 
+
+// TODO: value object for type
+
 const isDiType = isFromArray(Object.values(DigitalIdentityTypes));
 
 export const castToDigitalIdentityType = (val: string): Result<string, string> => {

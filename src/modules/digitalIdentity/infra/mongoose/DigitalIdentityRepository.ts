@@ -60,58 +60,16 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
       });
       if (existingDI) {
         const updateOp = await this._model
-          .updateOne(
+          .findOneAndReplace(
             {
               uniqueId: digitalIdentity.uniqueId.toString(),
               version: digitalIdentity.fetchedVersion,
             },
-            persistanceState
+            {...persistanceState, createdAt: existingDI.createdAt },
           )
           .session(session);
 
-        if (updateOp.n === 0) {
-          result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
-        }
-      } else {
-        await this._model.create([persistanceState], { session });
-        result = ok(undefined);
-      }
-      await session.commitTransaction();
-    } catch (error) {
-      result = err(MongooseError.GenericError.create(error));
-      await session.abortTransaction();
-    } finally {
-      session.endSession();
-    }
-    return result;
-  }
-
-  // TODO: to good to be true need refactor
-  async removeFields(
-    digitalIdentity: DigitalIdentity,
-    fieldsToRemove: string[]
-  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
-    const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
-    let result: Result<void, AggregateVersionError> = ok(undefined);
-    let session = await this._model.startSession();
-    const fieldsQuery = Object.fromEntries(fieldsToRemove.map((field) => [field, 1]));
-    try {
-      session.startTransaction();
-      const existingDI = await this._model.findOne({
-        uniqueId: digitalIdentity.uniqueId.toString(),
-      });
-      if (existingDI) {
-        const updateOp = await this._model
-          .updateOne(
-            {
-              uniqueId: digitalIdentity.uniqueId.toString(),
-              version: digitalIdentity.fetchedVersion,
-            },
-            { $unset: fieldsQuery }
-          )
-          .session(session);
-
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
         }
       } else {

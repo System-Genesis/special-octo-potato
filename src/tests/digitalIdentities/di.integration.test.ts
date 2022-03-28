@@ -1,12 +1,12 @@
-import { testMoveGroup } from './groupMove.integration.spec';
+import { testUpdateDI } from './diUpdate.integration.spec';
 import { connect } from '../../shared/infra/mongoose/connection';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { emptyDB, findByQuery, findOneByQuery } from '../setup/seedUtils';
 import * as http from 'http';
 import { start as startServer, app } from '../../shared/infra/http/app';
 
-import { testCreateGroup } from './groupCreate.integration.spec'
-import { testUpdateGroup } from './groupUpdate.integration.spec'
+import { testCreateDI } from './diCreate.integration.spec'
+
 
 let server: http.Server;
 beforeAll(async () => {
@@ -31,15 +31,13 @@ beforeAll(async () => {
 
     
 });
-
 afterAll(async () => {
     await server.close();
 });
 
 
 
-describe('Sequentially run groups tests', () => {
-   testCreateGroup()
-   testUpdateGroup()
-   testMoveGroup()
+describe('Sequentially run digitalIdentities tests', () => {
+   testCreateDI()
+   testUpdateDI()
 })

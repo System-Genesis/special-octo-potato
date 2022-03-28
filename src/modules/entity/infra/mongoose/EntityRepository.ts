@@ -50,6 +50,7 @@ export class EntityRepository implements IEntityRepository {
     return Mapper.toDomain(raw);
   }
 
+  // TODO: seperate into create and update 
   async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
     const persistanceState = sanitize(Mapper.toPersistance(entity));
     let result: Result<void, AggregateVersionError> = ok(undefined);
@@ -62,16 +63,17 @@ export class EntityRepository implements IEntityRepository {
           _id: entity.entityId.toString(),
         })
       if (existingEntity) {
-        const updateOp = await this._model.updateOne(
+        const updateOp = await this._model.findOneAndReplace(
           { 
             _id: entity.entityId.toString(), 
             version: entity.fetchedVersion,
           },
-            persistanceState
+          // TODO: maintain createAt & updatedAt in domain?
+          {...persistanceState, createdAt: existingEntity.createdAt },
           )
           .session(session);
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(entity.fetchedVersion));
         }
       } else {

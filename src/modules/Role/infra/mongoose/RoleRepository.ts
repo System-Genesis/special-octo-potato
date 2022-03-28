@@ -69,16 +69,16 @@ export class RoleRepository implements IRoleRepository {
       const existingRole = await this._model.findOne({ roleId: role.roleId.toString() });
 
       if (existingRole) {
-        const updateOp = await this._model.updateOne(
+        const updateOp = await this._model.findOneAndReplace(
           {
             roleId: role.roleId.toString(),
             version: role.fetchedVersion,
           },
-          persistanceState,
+          {...persistanceState, createdAt: existingRole.createdAt },
           { session }
         );
 
-        if (updateOp.n === 0) {
+        if (!updateOp) {
           result = err(AggregateVersionError.create(role.fetchedVersion));
         }
       } else {
@@ -98,45 +98,4 @@ export class RoleRepository implements IRoleRepository {
     return result;
   }
 
-  // TODO: to good to be true need refactor
-  async removeFields(
-    role: Role,
-    fieldsToRemove: string[]
-  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
-    const persistanceState = sanitize(Mapper.toPersistance(role));
-    let result: Result<void, AggregateVersionError> = ok(undefined);
-    let session = await this._model.startSession();
-    const fieldsQuery = Object.fromEntries(fieldsToRemove.map((field) => [field, 1]));
-    try {
-      session.startTransaction();
-      const existingRole = await this._model.findOne({
-        roleId: role.roleId.toString(),
-      });
-      if (existingRole) {
-        const updateOp = await this._model
-          .updateOne(
-            {
-              roleId: role.roleId.toString(),
-              version: role.fetchedVersion,
-            },
-            { $unset: fieldsQuery }
-          )
-          .session(session);
-
-        if (updateOp.n === 0) {
-          result = err(AggregateVersionError.create(role.fetchedVersion));
-        }
-      } else {
-        await this._model.create([persistanceState], { session });
-        result = ok(undefined);
-      }
-      await session.commitTransaction();
-    } catch (error) {
-      result = err(MongooseError.GenericError.create(error));
-      await session.abortTransaction();
-    } finally {
-      session.endSession();
-    }
-    return result;
-  }
 }

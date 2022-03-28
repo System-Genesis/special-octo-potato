@@ -11,10 +11,6 @@ import { MongooseError } from '../../../shared/infra/mongoose/errors/MongooseErr
 
 export interface DigitalIdentityRepository extends Repository<DigitalIdentity> {
   save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError>>;
-  removeFields(
-    digitalIdentity: DigitalIdentity,
-    fieldsToRemove: string[]
-  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>>;
   getByUniqueId(uniqueId: DigitalIdentityId): Promise<DigitalIdentity | null>;
   getByEntityId(entityId: EntityId): Promise<DigitalIdentity[]>;
   existsInSource(identifier: Mail | DigitalIdentityId, source: Source): Promise<boolean>;

@@ -1,12 +1,12 @@
-import { testMoveGroup } from './groupMove.integration.spec';
+import { testConnectRole } from './roleConnect.integration.spec';
 import { connect } from '../../shared/infra/mongoose/connection';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { emptyDB, findByQuery, findOneByQuery } from '../setup/seedUtils';
 import * as http from 'http';
 import { start as startServer, app } from '../../shared/infra/http/app';
 
-import { testCreateGroup } from './groupCreate.integration.spec'
-import { testUpdateGroup } from './groupUpdate.integration.spec'
+import { testCreateRole } from './roleCreate.integration.spec'
+
 
 let server: http.Server;
 beforeAll(async () => {
@@ -38,8 +38,7 @@ afterAll(async () => {
 
 
 
-describe('Sequentially run groups tests', () => {
-   testCreateGroup()
-   testUpdateGroup()
-   testMoveGroup()
+describe('Sequentially run roles tests', () => {
+   testCreateRole()
+   testConnectRole()
 })

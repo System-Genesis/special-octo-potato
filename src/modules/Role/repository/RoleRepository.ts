@@ -10,10 +10,6 @@ import { RoleId } from "../domain/RoleId";
 
 export interface RoleRepository extends Repository<Role> {
   save(role: Role): Promise<Result<void, AggregateVersionError>>;
-  removeFields(
-    role: Role,
-    fieldsToRemove: string[]
-  ): Promise<Result<void, AggregateVersionError>>;
   getByRoleId(roleId: RoleId): Promise<Role | null>;
   exists(roleId: RoleId): Promise<boolean>;
   getByDigitalIdentityId(digitalIdentityUniqueId: DigitalIdentityId): Promise<Role | null>;

@@ -7,8 +7,16 @@ import { app } from '../../shared/infra/http/app';
 
 const sources: string[] = config.get('valueObjects.source.values');
 const es_name_source = sources[1]
+const sf_name_source = sources[2]
 
-
+beforeEach(async () => {
+    try {
+      await emptyDB();
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  
 export const testCreateGroup = () => {
     describe('GROUP CREATE USECASES', () => {
         beforeEach(async () => {
@@ -88,7 +96,7 @@ export const testCreateGroup = () => {
 
         it('shouldnt create adidas group from sf_name under nike from es_name', async () => {
             const esRes = await request(app).post(`/api/groups`).send(esGroup).expect(200)
-            nonValidGroup = { name: "ss", source: 'sf_name', directGroup: esRes.body.id}
+            nonValidGroup = { name: "ss", source: sf_name_source, directGroup: esRes.body.id}
             const res = await request(app).post(`/api/groups`).send(nonValidGroup).expect(400)
             expect(res.body.message).toEqual(expect.stringContaining(`sf_name doesn't match to source es_name`))
 

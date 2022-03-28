@@ -1,3 +1,4 @@
+import { UpdateEntityDTO } from './../useCases/dtos/UpdateEntityDTO';
 import { Organization } from './Organization';
 import { EmployeeNumber } from './EmployeeNumber';
 import { isFromArray } from './../../../utils/isSomeValues';
@@ -7,7 +8,7 @@ import { PrimaryDigitalIdentityService } from "./PrimaryDigitalIdentityService";
 import { IConnectedDI } from "./ConnectedDI";
 import { AggregateRoot, CreateOpts } from "../../../core/domain/AggregateRoot";
 import { EntityId } from "./EntityId";
-import { has, hasAll } from "../../../utils/ObjectUtils";
+import { deleteNullProps, deleteProps, extractNullKeys, has, hasAll } from "../../../utils/ObjectUtils";
 import { Result, err, ok } from "neverthrow";
 import { IllegalEntityStateError } from "./errors/IllegalEntityStateError";
 import { AppError } from "../../../core/logic/AppError";
@@ -229,7 +230,30 @@ const SET_ONLY_ONCE_FIELDS = new Set([
 ] as (keyof EntityState)[]);
 
 //TODO: should add  more fields like employeeId
-type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
+// type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
+// TODO: should use omit EntityState and add null
+type UpdateDto =  Partial<{
+  firstName: string;
+  lastName: string | null;
+  entityType: string; // TODO: make entityType, sex valueObjects
+  personalNumber: PersonalNumber | null;
+  identityCard: IdentityCard | null;
+  employeeNumber: EmployeeNumber;
+  rank: Rank | null;
+  akaUnit: string | null;
+  organization: Organization;
+  clearance: string | null; // value object
+  sex: string | null;
+  serviceType: ServiceType | null;
+  dischargeDay: Date | null;
+  birthDate: Date | null;
+  address: string | null; // value?
+  phone: UniqueArray<Phone> | null; //value object
+  mobilePhone: UniqueArray<MobilePhone> | null; //value object
+  goalUserId: DigitalIdentityId | null;
+  pictures: Pictures | null;
+}>;
+
 export type UpdateResult = Result<
   void,
   | IllegalEntityStateError
@@ -277,10 +301,11 @@ export class Entity extends AggregateRoot {
         )
       );
     }
-    const newState = { ...this._state, ...updateDto };
-    const isValid = Entity.isValidEntityState(newState);
+    const newStateWithNulls = { ...this._state, ...updateDto };
+    const newStateWithoutNulls = deleteNullProps(newStateWithNulls);
+    const isValid = Entity.isValidEntityState(newStateWithoutNulls);
     if (isValid.isOk()) {
-      this._state = newState;
+      this._state = newStateWithoutNulls as EntityState;
     }
     this.markModified();
     return isValid;
