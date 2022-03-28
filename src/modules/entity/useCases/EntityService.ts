@@ -292,7 +292,7 @@ export class EntityService {
       (di) => di.connectedDigitalIdentity
     );
     entity.choosePrimaryDigitalIdentity(connectedDIs);
-    const saveEntityRes = (await this.entityRepository.save(entity)).mapErr(
+    const saveEntityRes = (await this.entityRepository.update(entity)).mapErr(
       (err) => AppError.RetryableConflictError.create(err.message)
     );
     return saveEntityRes;
@@ -352,7 +352,7 @@ export class EntityService {
       (di) => di.connectedDigitalIdentity
     );
     entity.choosePrimaryDigitalIdentity(connectedDIs);
-    const saveEntityRes = (await this.entityRepository.save(entity)).mapErr(
+    const saveEntityRes = (await this.entityRepository.update(entity)).mapErr(
       (err) => AppError.RetryableConflictError.create(err.message)
     );
     return saveEntityRes;
