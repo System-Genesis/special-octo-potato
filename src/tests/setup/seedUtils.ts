@@ -60,40 +60,37 @@ export const findByQuery = async (collectionName: string, query: Object) => {
     const collection = dbConnection.collection(collectionName);
     const res = await collection.find(query).toArray();
     return res;
-}
+};
 
 export const findOneByQuery = async (collectionName: string, query: Object) => {
     const collection = dbConnection.collection(collectionName);
     const res = await collection.findOne(query);
     return res;
-}
-export const insert = async(collectionName: string, doc : Object) => {
-    const collection = dbConnection.collection(collectionName)
+};
+export const insert = async (collectionName: string, doc: Object) => {
+    const collection = dbConnection.collection(collectionName);
     const res = await collection.insertOne(doc);
     return res;
-}
+};
 
 export const emptyDB = async () => {
-    const rolesCollection = dbConnection.collection('roles')
-    const entitiesCollection = dbConnection.collection('entities')
-    const groupsCollection = dbConnection.collection('groups')
-    const digitalIdentitiesCollection = dbConnection.collection('digitalidentities')
+    const rolesCollection = dbConnection.collection('roles');
+    const entitiesCollection = dbConnection.collection('entities');
+    const groupsCollection = dbConnection.collection('groups');
+    const digitalIdentitiesCollection = dbConnection.collection('digitalidentities');
     try {
-
         await rolesCollection.remove({});
         await entitiesCollection.remove({});
         await groupsCollection.remove({});
         await digitalIdentitiesCollection.remove({});
-    } catch(err){
-        
-    }
+    } catch (err) {}
 };
 
 export const isEmptyDB = async () => {
-    const rolesCollection = dbConnection.collection('roles')
-    const entitiesCollection = dbConnection.collection('entities')
-    const groupsCollection = dbConnection.collection('groups')
-    const digitalIdentitiesCollection = dbConnection.collection('digitalIdentities')
+    const rolesCollection = dbConnection.collection('roles');
+    const entitiesCollection = dbConnection.collection('entities');
+    const groupsCollection = dbConnection.collection('groups');
+    const digitalIdentitiesCollection = dbConnection.collection('digitalIdentities');
     const EntityLength = await entitiesCollection.count({});
     const RoleLength = await rolesCollection.count({});
     const GroupLength = await groupsCollection.count({});

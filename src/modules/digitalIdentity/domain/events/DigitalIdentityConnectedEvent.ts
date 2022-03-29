@@ -16,7 +16,7 @@
 // }
 
 // export class DigitalIdentityConnectedEvent extends DomainEvent<DIEventPayload> {
- 
+
 //   toPlainObject(): object {
 //     const {
 //       source,

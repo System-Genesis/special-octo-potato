@@ -10,7 +10,6 @@ import { start as startServer, app } from '../shared/infra/http/app';
 
 let server: http.Server;
 beforeAll(async () => {
-
     try {
         server = await startServer();
         const replset = await MongoMemoryReplSet.create({
@@ -24,95 +23,77 @@ beforeAll(async () => {
         await replset.waitUntilRunning();
         const uri = replset.getUri();
         await connect(uri);
-        await emptyDB()
+        await emptyDB();
     } catch (err) {
-        console.log(err)
+        console.log(err);
     }
-
-    
 });
 afterAll(async () => {
     await server.close();
 });
 
-
-
 describe('POST Group ', () => {
-    const esGroup = { name: "es_name", source: 'es_name'}
+    const esGroup = { name: 'es_name', source: 'es_name' };
     let esId: string;
     let nikeGroup;
     it('create a VALID root group es_name', (done) => {
         request(app)
             .post(`/api/groups`)
-            .send(
-                esGroup
-            )
+            .send(esGroup)
             .expect(200)
-            .end(async (err :any, res : any) => {
+            .end(async (err: any, res: any) => {
                 if (err) {
-                    
                     throw done(err);
                 }
-                expect(Object.keys(res.body).length === 1)
-                expect(res.body.id).toBeTruthy()
-                esId = res.body.id
-                const foundGroup = await findOneByQuery('groups', { name: "es_name"})
-                expect(foundGroup.name).toBe('es_name')
+                expect(Object.keys(res.body).length === 1);
+                expect(res.body.id).toBeTruthy();
+                esId = res.body.id;
+                const foundGroup = await findOneByQuery('groups', { name: 'es_name' });
+                expect(foundGroup.name).toBe('es_name');
                 return done();
             });
     });
-    let foundNikeGroup : any;
+    let foundNikeGroup: any;
     it('create a VALID child group nike', (done) => {
-        nikeGroup = { name: "nike", source: 'es_name', directGroup: esId}
+        nikeGroup = { name: 'nike', source: 'es_name', directGroup: esId };
         request(app)
             .post(`/api/groups`)
-            .send(
-                nikeGroup
-            )
+            .send(nikeGroup)
             .expect(200)
-            .end(async (err :any, res : any) => {
+            .end(async (err: any, res: any) => {
                 if (err) {
-                    
                     throw done(err);
                 }
-                expect(Object.keys(res.body).length === 1)
-                expect(res.body.id).toBeTruthy()
-                foundNikeGroup = await findOneByQuery('groups', { name: "nike"})
-                expect(foundNikeGroup.name).toBe('nike')
+                expect(Object.keys(res.body).length === 1);
+                expect(res.body.id).toBeTruthy();
+                foundNikeGroup = await findOneByQuery('groups', { name: 'nike' });
+                expect(foundNikeGroup.name).toBe('nike');
                 return done();
             });
     });
     it('shouldnt delete a root group because is not a leaf', async () => {
         request(app)
-            .delete(`/api/groups/`+esId.toString())
+            .delete(`/api/groups/` + esId.toString())
             .expect(400)
-            .end(async (err :any, res : any) => {
+            .end(async (err: any, res: any) => {
                 if (err) {
-                    
-                    throw (err);
+                    throw err;
                 }
-                
             });
-        
     });
     it('delete a VALID group ', async () => {
         request(app)
-            .delete(`/api/groups/`+foundNikeGroup._id.toString())
+            .delete(`/api/groups/` + foundNikeGroup._id.toString())
             .expect(200)
-            .end(async (err :any, res : any) => {
+            .end(async (err: any, res: any) => {
                 if (err) {
-                    
-                    throw (err);
+                    throw err;
                 }
-                
-                const foundGroup = await findOneByQuery('groups', { name: "nike"})
-                expect(foundGroup).toBe(null)
-                
-            });
-        
-    });
-    
 
+                const foundGroup = await findOneByQuery('groups', { name: 'nike' });
+                expect(foundGroup).toBe(null);
+            });
+    });
 });
 
 // describe('DELETE Group ', () => {
@@ -124,15 +105,15 @@ describe('POST Group ', () => {
 //             .expect(200)
 //             .end(async (err :any, res : any) => {
 //                 if (err) {
-                    
+
 //                     throw (err);
 //                 }
-                
+
 //                 const foundGroup = await findOneByQuery('groups', { name: "nike"})
 //                 expect(foundGroup).toBe(null)
-                
+
 //             });
-        
+
 //     });
 // });
 
@@ -154,13 +135,13 @@ describe('POST Group ', () => {
 //             .expect(200)
 //             .end(async (err :any, res : any) => {
 //                 if (err) {
-                    
+
 //                     throw (err);
 //                 }
-                
+
 //                 const foundGroup = await findOneByQuery('groups', { name: "son"})
 //                 expect(foundGroup.directGroup).toBe(foundGroupFather2._id.toString())
-                
+
 //             });
 
 //     });
@@ -182,13 +163,13 @@ describe('POST Group ', () => {
 //             .expect(200)
 //             .end(async (err :any, res : any) => {
 //                 if (err) {
-                    
+
 //                     throw (err);
 //                 }
-                
+
 //                 const foundGroup = await findOneByQuery('groups', { name: "son"})
 //                 expect(foundGroup.directGroup).toBe(foundGroupFatherFirst._id.toString())
-                
+
 //             });
 
 //     });

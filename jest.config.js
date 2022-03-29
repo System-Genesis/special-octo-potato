@@ -1,16 +1,16 @@
 module.exports = {
     preset: 'ts-jest',
-    
+
     testEnvironment: 'node',
     setupFiles: ['<rootDir>/src/tests/setup/setup.ts'],
     collectCoverage: false,
     testMatch: ['**/**/*.spec.(ts)'],
     transform: {
-        ".(ts|tsx)": "ts-jest"
+        '.(ts|tsx)': 'ts-jest',
     },
     globals: {
-        "ts-jest": {
-          "compiler": "ttypescript"
-        }
-    }
+        'ts-jest': {
+            compiler: 'ttypescript',
+        },
+    },
 };

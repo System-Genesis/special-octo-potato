@@ -7,7 +7,7 @@
 // import { DigitalIdentityConnectedEvent } from "../../digitalIdentity/domain/events/DigitalIdentityConnectedEvent";
 
 // const afterDigitalIdentityConnection = new AfterDigitalIdentityConnected(
-//   entityRepository, 
+//   entityRepository,
 //   digitalIdentityRepository,
 //   new PrimaryDigitalIdentityService() // TODO: maybe static class
 // );

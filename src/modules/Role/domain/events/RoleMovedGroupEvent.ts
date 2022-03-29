@@ -12,7 +12,6 @@
 //   // hierarchy: Hierarchy;
 // }
 
-
 // export class RoleMovedGroupEvent extends DomainEvent<RoleMovedEventPayload> {
 //   toPlainObject(): object {
 //     const {
@@ -21,7 +20,7 @@
 //     return {
 //       roleId: roleId.toString(),
 //       directGroup: directGroup.toString(),
-//       ...!!connectedDigitalIdentityId && { 
+//       ...!!connectedDigitalIdentityId && {
 //         connectedDigitalIdentityId: connectedDigitalIdentityId.toString(),
 //       },
 //       ...!!jobTitle && { jobTitle },

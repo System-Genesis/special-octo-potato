@@ -6,7 +6,7 @@
 //   previousParentId?: GroupId;
 //   groupId: GroupId;
 //   name: string;
-//   source: Source; // TODO: value object. 
+//   source: Source; // TODO: value object.
 //   akaUnit?: string;
 //   // hierarchy: Hierarchy;
 //   ancestors: GroupId[];
