@@ -1,7 +1,7 @@
 {
   "valueObjects": {
     "source": {
-      "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"], 
+      "values": ["oa_name", "es_name", "sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"],
       "strongSources": ["oa_name"],
       "upnSource": "ads_name",
       "weakSource": ["mir_name"],
@@ -30,17 +30,17 @@
       }
     },
     "EntityType": {
-      "Soldier" : "agumon",
-      "Civilian" : "digimon",
-      "GoalUser" : "tamar"
+      "Soldier": "agumon",
+      "Civilian": "digimon",
+      "GoalUser": "tamar"
     },
     "Sex": {
-      "Male" : "male",
-      "Female" : "female"
+      "Male": "male",
+      "Female": "female"
     },
     "digitalIdentityType": {
-      "DomainUser" : "domainUser",
-      "VirtualUser" : "virtualUser" 
+      "DomainUser": "domainUser",
+      "VirtualUser": "virtualUser"
     }
   },
   "db": {

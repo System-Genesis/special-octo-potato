@@ -5,12 +5,10 @@ import { emptyDB, findByQuery, findOneByQuery } from '../setup/seedUtils';
 import * as http from 'http';
 import { start as startServer, app } from '../../shared/infra/http/app';
 
-import { testCreateDI } from './diCreate.integration.spec'
-
+import { testCreateDI } from './diCreate.integration.spec';
 
 let server: http.Server;
 beforeAll(async () => {
-
     try {
         server = await startServer();
         const replset = await MongoMemoryReplSet.create({
@@ -24,20 +22,16 @@ beforeAll(async () => {
         await replset.waitUntilRunning();
         const uri = replset.getUri();
         await connect(uri);
-        await emptyDB()
+        await emptyDB();
     } catch (err) {
-        console.log(err)
+        console.log(err);
     }
-
-    
 });
 afterAll(async () => {
     await server.close();
 });
 
-
-
 describe('Sequentially run digitalIdentities tests', () => {
-   testCreateDI()
-   testUpdateDI()
-})
+    testCreateDI();
+    testUpdateDI();
+});
