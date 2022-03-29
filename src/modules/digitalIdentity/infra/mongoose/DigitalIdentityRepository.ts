@@ -1,24 +1,31 @@
-import { Source } from './../../domain/Source';
-import { Connection, Model } from 'mongoose';
-import { DigitalIdentityRepository as IdigitalIdentityRepo } from '../../repository/DigitalIdentityRepository';
-import { default as DigitalIdentitySchema, DigitalIdentityDoc } from './DigitalIdentitySchema';
-import { DigitalIdentity } from '../../domain/DigitalIdentity';
-import { DigitalIdentityMapper as Mapper } from './DigitalIdentityMapper';
-import { DigitalIdentityId } from '../../domain/DigitalIdentityId';
-import { EntityId } from '../../../entity/domain/EntityId';
-import { EventOutbox } from '../../../../shared/infra/mongoose/eventOutbox/Outbox';
-import { Mail } from '../../domain/Mail';
-import { err, ok, Result } from 'neverthrow';
-import { AggregateVersionError } from '../../../../core/infra/AggregateVersionError';
-import { AppError } from '../../../../core/logic/AppError';
-import { BaseError } from '../../../../core/logic/BaseError';
-import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { Source } from "./../../domain/Source";
+import { Connection, Model } from "mongoose";
+import { DigitalIdentityRepository as IdigitalIdentityRepo } from "../../repository/DigitalIdentityRepository";
+import {
+  default as DigitalIdentitySchema,
+  DigitalIdentityDoc,
+} from "./DigitalIdentitySchema";
+import { DigitalIdentity } from "../../domain/DigitalIdentity";
+import { DigitalIdentityMapper as Mapper } from "./DigitalIdentityMapper";
+import { DigitalIdentityId } from "../../domain/DigitalIdentityId";
+import { EntityId } from "../../../entity/domain/EntityId";
+import { EventOutbox } from "../../../../shared/infra/mongoose/eventOutbox/Outbox";
+import { Mail } from "../../domain/Mail";
+import { err, ok, Result } from "neverthrow";
+import { AggregateVersionError } from "../../../../core/infra/AggregateVersionError";
+import { AppError } from "../../../../core/logic/AppError";
+import { BaseError } from "../../../../core/logic/BaseError";
+import { MongooseError } from "../../../../shared/infra/mongoose/errors/MongooseError";
+import { sanitize } from "../../../../utils/ObjectUtils";
 
 export class DigitalIdentityRepository implements IdigitalIdentityRepo {
   private _model: Model<DigitalIdentityDoc>;
 
-  constructor(db: Connection, eventOutbox: EventOutbox, config: { modelName: string }) {
+  constructor(
+    db: Connection,
+    eventOutbox: EventOutbox,
+    config: { modelName: string }
+  ) {
     const { modelName } = config;
     if (db.modelNames().includes(modelName)) {
       this._model = db.model(modelName);
@@ -30,10 +37,14 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
   async existsInSource(identifier: Mail | DigitalIdentityId, source: Source) {
     // TODO: perhaps not needed?
     if (identifier instanceof Mail) {
-      return !!(await this._model.findOne({ mail: identifier.value, source: source.value }).lean());
+      return !!(await this._model
+        .findOne({ mail: identifier.value, source: source.value })
+        .lean());
     } else {
       // is DigitalIdentityId
-      return !!(await this._model.findOne({ uniqueId: identifier.toString(), source: source.value }).lean());
+      return !!(await this._model
+        .findOne({ uniqueId: identifier.toString(), source: source.value })
+        .lean());
     }
   }
 
@@ -42,11 +53,13 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
       return !!(await this._model.findOne({ mail: identifier.value }).lean());
     } else {
       // is DigitalIdentityId
-      return !!(await this._model.findOne({ uniqueId: identifier.toString() }).lean());
+      return !!(await this._model
+        .findOne({ uniqueId: identifier.toString() })
+        .lean());
     }
   }
 
-  async save(
+  async create(
     digitalIdentity: DigitalIdentity
   ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
     const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
@@ -55,27 +68,45 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
 
     try {
       session.startTransaction();
-      const existingDI = await this._model.findOne({
-        uniqueId: digitalIdentity.uniqueId.toString(),
-      });
-      if (existingDI) {
-        const updateOp = await this._model
-          .findOneAndReplace(
-            {
-              uniqueId: digitalIdentity.uniqueId.toString(),
-              version: digitalIdentity.fetchedVersion,
-            },
-            {...persistanceState, createdAt: existingDI.createdAt },
-          )
-          .session(session);
 
-        if (!updateOp) {
-          result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
-        }
-      } else {
-        await this._model.create([persistanceState], { session });
-        result = ok(undefined);
+      await this._model.create([persistanceState], { session });
+
+      await session.commitTransaction();
+    } catch (error) {
+      result = err(MongooseError.GenericError.create(error));
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
+    return result;
+  }
+
+  async update(
+    digitalIdentity: DigitalIdentity
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
+    let result: Result<void, AggregateVersionError> = ok(undefined);
+    let session = await this._model.startSession();
+
+    try {
+      session.startTransaction();
+
+      const updateOp = await this._model
+        .findOneAndReplace(
+          {
+            uniqueId: digitalIdentity.uniqueId.toString(),
+            version: digitalIdentity.fetchedVersion,
+          },
+          persistanceState
+        )
+        .session(session);
+
+      if (!updateOp) {
+        result = err(
+          AggregateVersionError.create(digitalIdentity.fetchedVersion)
+        );
       }
+
       await session.commitTransaction();
     } catch (error) {
       result = err(MongooseError.GenericError.create(error));
@@ -87,13 +118,17 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
   }
 
   async getByUniqueId(uniqueId: DigitalIdentityId) {
-    const raw = await this._model.findOne({ uniqueId: uniqueId.toString() }).lean();
+    const raw = await this._model
+      .findOne({ uniqueId: uniqueId.toString() })
+      .lean();
     if (!raw) return null;
     return Mapper.toDomain(raw);
   }
 
   async getByEntityId(entityId: EntityId) {
-    const raw = await this._model.find({ entityId: entityId.toString() }).lean();
+    const raw = await this._model
+      .find({ entityId: entityId.toString() })
+      .lean();
     return raw.map(Mapper.toDomain);
   }
   async delete(uniqueId: DigitalIdentityId): Promise<Result<any, BaseError>> {

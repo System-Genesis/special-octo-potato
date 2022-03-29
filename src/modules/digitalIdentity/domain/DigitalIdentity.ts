@@ -1,29 +1,32 @@
-import config from 'config';
-import { CannotConnectAlreadyConnected } from './errors/CannotConnectAlreadyConnected ';
-import { CannotDisconnectUnconnected } from './errors/CannotDisconnectUnconnected';
-import { AggregateRoot, CreateOpts } from '../../../core/domain/AggregateRoot';
-import { DigitalIdentityId } from './DigitalIdentityId';
-import { EntityId } from '../../entity/domain/EntityId';
-import { Entity } from '../../entity/domain/Entity';
-import { Result, err, ok, Err, Ok } from 'neverthrow';
-import { CannotConnectRoleError } from './errors/CannotConnectRoleError';
-import { Mail } from './Mail';
-import { Source } from './Source';
-import { isFromArray } from '../../../utils/isSomeValues';
+import config from "config";
+import { CannotConnectAlreadyConnected } from "./errors/CannotConnectAlreadyConnected ";
+import { CannotDisconnectUnconnected } from "./errors/CannotDisconnectUnconnected";
+import { AggregateRoot, CreateOpts } from "../../../core/domain/AggregateRoot";
+import { DigitalIdentityId } from "./DigitalIdentityId";
+import { EntityId } from "../../entity/domain/EntityId";
+import { Entity } from "../../entity/domain/Entity";
+import { Result, err, ok, Err, Ok } from "neverthrow";
+import { CannotConnectRoleError } from "./errors/CannotConnectRoleError";
+import { Mail } from "./Mail";
+import { Source } from "./Source";
+import { isFromArray } from "../../../utils/isSomeValues";
 
 export type digitalIdentityType = {
   DomainUser: string;
   VirtualUser: string;
 };
 
-export const DigitalIdentityTypes: digitalIdentityType = config.get('valueObjects.digitalIdentityType');
-
+export const DigitalIdentityTypes: digitalIdentityType = config.get(
+  "valueObjects.digitalIdentityType"
+);
 
 // TODO: value object for type
 
 const isDiType = isFromArray(Object.values(DigitalIdentityTypes));
 
-export const castToDigitalIdentityType = (val: string): Result<string, string> => {
+export const castToDigitalIdentityType = (
+  val: string
+): Result<string, string> => {
   if (isDiType(val)) {
     return ok(val);
   }
@@ -37,6 +40,7 @@ export interface DigitalIdentityState {
   entityId?: EntityId;
   canConnectRole?: boolean;
   upn?: string;
+  createdAt?: Date;
 }
 
 export interface DigitalIdentityRepresent {
@@ -51,13 +55,19 @@ export class DigitalIdentity extends AggregateRoot {
   private _canConnectRole: boolean;
   private _entityId?: EntityId;
   private _upn?: string;
+  private _createdAt?: Date;
 
-  private constructor(id: DigitalIdentityId, props: DigitalIdentityState, opts: CreateOpts) {
+  private constructor(
+    id: DigitalIdentityId,
+    props: DigitalIdentityState,
+    opts: CreateOpts
+  ) {
     super(id, opts);
     this._type = props.type;
     this._source = props.source;
     this._mail = props.mail;
     this._entityId = props.entityId;
+    this._createdAt = props.createdAt;
     this._canConnectRole =
       props.canConnectRole !== undefined
         ? // if given in props - use it
@@ -76,9 +86,14 @@ export class DigitalIdentity extends AggregateRoot {
     this.markModified();
   }
 
-  connectToEntity(entity: Entity, upn?: string): Err<unknown, CannotConnectAlreadyConnected> | Ok<undefined, unknown> {
+  connectToEntity(
+    entity: Entity,
+    upn?: string
+  ): Err<unknown, CannotConnectAlreadyConnected> | Ok<undefined, unknown> {
     if (this._entityId) {
-      return err(CannotConnectAlreadyConnected.create(this.uniqueId.toString()));
+      return err(
+        CannotConnectAlreadyConnected.create(this.uniqueId.toString())
+      );
     }
     this._entityId = entity.entityId;
     // TODO: perhaps required upn error should be here with source validation?
@@ -89,7 +104,9 @@ export class DigitalIdentity extends AggregateRoot {
     return ok(undefined);
   }
 
-  disconnectEntity(): Err<unknown, CannotDisconnectUnconnected> | Ok<undefined, unknown> {
+  disconnectEntity():
+    | Err<unknown, CannotDisconnectUnconnected>
+    | Ok<undefined, unknown> {
     // if (this.type === DigitalIdentityType.Kaki) {
     //   return; // TODO: is error?
     // }
@@ -107,7 +124,10 @@ export class DigitalIdentity extends AggregateRoot {
     state: DigitalIdentityState,
     opts: CreateOpts
   ): Result<DigitalIdentity, CannotConnectRoleError> {
-    if (state.type === DigitalIdentityTypes.VirtualUser && state.canConnectRole) {
+    if (
+      state.type === DigitalIdentityTypes.VirtualUser &&
+      state.canConnectRole
+    ) {
       return err(CannotConnectRoleError.create(id.toString())); //error
     }
     // TODO:
@@ -162,6 +182,9 @@ export class DigitalIdentity extends AggregateRoot {
     return this._upn;
   }
 
+  get createdAt() {
+    return this._createdAt;
+  }
 
   get connectedDigitalIdentity(): DigitalIdentityRepresent {
     return {

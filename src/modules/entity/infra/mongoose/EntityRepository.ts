@@ -76,7 +76,7 @@ export class EntityRepository implements IEntityRepository {
     return Mapper.toDomain(raw);
   }
 
-  async save(
+  async create(
     entity: Entity
   ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
     const persistanceState = sanitize(Mapper.toPersistance(entity));

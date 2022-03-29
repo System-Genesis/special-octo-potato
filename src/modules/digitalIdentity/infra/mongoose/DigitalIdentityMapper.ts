@@ -8,9 +8,8 @@ import { Source } from "../../domain/Source";
 import { wrapResult } from "../../../../utils/resultUtils";
 
 export class DigitalIdentityMapper {
-
   static toPersistance(digitalIdentity: DigitalIdentity): DigitalIdentityDoc {
-    const persistanced : DigitalIdentityDoc =  {
+    const persistanced: DigitalIdentityDoc = {
       uniqueId: digitalIdentity.uniqueId.toString(),
       type: digitalIdentity.type,
       source: digitalIdentity.source.value,
@@ -18,9 +17,12 @@ export class DigitalIdentityMapper {
       isRoleAttachable: digitalIdentity.canConnectRole,
       version: digitalIdentity.version,
       upn: digitalIdentity.upn,
-    }
+      createdAt: digitalIdentity.createdAt,
+    };
     if (digitalIdentity.connectedEntityId) {
-      persistanced.entityId = Types.ObjectId(digitalIdentity.connectedEntityId.toString())
+      persistanced.entityId = Types.ObjectId(
+        digitalIdentity.connectedEntityId.toString()
+      );
     }
     return persistanced;
   }
@@ -29,7 +31,7 @@ export class DigitalIdentityMapper {
     const uid = DigitalIdentityId.create(raw.uniqueId)._unsafeUnwrap();
     const entityId = raw.entityId;
     const sourceRes = Source.create(raw.source);
-    const sourceExtracted = wrapResult(sourceRes)
+    const sourceExtracted = wrapResult(sourceRes);
     return DigitalIdentity.create(
       uid,
       {
@@ -37,10 +39,13 @@ export class DigitalIdentityMapper {
         source: sourceExtracted!,
         type: raw.type,
         canConnectRole: raw.isRoleAttachable,
-        entityId: !!entityId ? EntityId.create(entityId.toHexString()) : undefined,
-        upn: raw.upn
+        entityId: !!entityId
+          ? EntityId.create(entityId.toHexString())
+          : undefined,
+        upn: raw.upn,
+        createdAt: raw.createdAt,
       },
-      { isNew: false, savedVersion: raw.version },
+      { isNew: false, savedVersion: raw.version }
     )._unsafeUnwrap();
   }
 }

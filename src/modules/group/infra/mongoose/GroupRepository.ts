@@ -1,22 +1,33 @@
-import { EventOutbox } from './../../../../shared/infra/mongoose/eventOutbox/Outbox';
-import { ClientSession, Collection, Connection, default as mongoose, Model, Types } from 'mongoose';
-import { GroupRepository as IGroupRepository } from '../../repository/GroupRepository';
-import { GroupMapper as Mapper } from './GroupMapper';
-import { default as GroupSchema, GroupDoc } from './GroupSchema';
-import { GroupId } from '../../domain/GroupId';
-import { Group } from '../../domain/Group';
-import { err, ok, Result } from 'neverthrow';
-import { AggregateVersionError } from '../../../../core/infra/AggregateVersionError';
-import { AppError } from '../../../../core/logic/AppError';
-import { BaseError } from '../../../../core/logic/BaseError';
-import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { Error as mongooseError } from 'mongoose';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { EventOutbox } from "./../../../../shared/infra/mongoose/eventOutbox/Outbox";
+import {
+  ClientSession,
+  Collection,
+  Connection,
+  default as mongoose,
+  Model,
+  Types,
+} from "mongoose";
+import { GroupRepository as IGroupRepository } from "../../repository/GroupRepository";
+import { GroupMapper as Mapper } from "./GroupMapper";
+import { default as GroupSchema, GroupDoc } from "./GroupSchema";
+import { GroupId } from "../../domain/GroupId";
+import { Group } from "../../domain/Group";
+import { err, ok, Result } from "neverthrow";
+import { AggregateVersionError } from "../../../../core/infra/AggregateVersionError";
+import { AppError } from "../../../../core/logic/AppError";
+import { BaseError } from "../../../../core/logic/BaseError";
+import { MongooseError } from "../../../../shared/infra/mongoose/errors/MongooseError";
+import { Error as mongooseError } from "mongoose";
+import { sanitize } from "../../../../utils/ObjectUtils";
 
 export class GroupRepository implements IGroupRepository {
   private _model: Model<GroupDoc>;
 
-  constructor(db: Connection, eventOutbox: EventOutbox, config: { modelName: string }) {
+  constructor(
+    db: Connection,
+    eventOutbox: EventOutbox,
+    config: { modelName: string }
+  ) {
     const { modelName } = config;
     if (db.modelNames().includes(modelName)) {
       this._model = db.model(modelName);
@@ -67,7 +78,10 @@ export class GroupRepository implements IGroupRepository {
     return groupOrNull;
   }
 
-  async getByNameAndParentId(name: string, parentId: GroupId): Promise<GroupId | null> {
+  async getByNameAndParentId(
+    name: string,
+    parentId: GroupId
+  ): Promise<GroupId | null> {
     let groupIdOrNull: GroupId | null = null;
     // calculate all group's fields in one transaction to preserve consistency
     /*
@@ -77,7 +91,9 @@ export class GroupRepository implements IGroupRepository {
     const session = await this._model.startSession();
     try {
       session.startTransaction();
-      const raw = await this._model.findOne({ directGroup: parentId.toString(), name: name }).lean();
+      const raw = await this._model
+        .findOne({ directGroup: parentId.toString(), name: name })
+        .lean();
       if (!!raw) {
         groupIdOrNull = GroupId.create(raw._id.toHexString());
       }
@@ -96,7 +112,9 @@ export class GroupRepository implements IGroupRepository {
     const session = await this._model.startSession();
     try {
       session.startTransaction();
-      const raw = await this._model.findOne({ directGroup: null, name: name }).lean();
+      const raw = await this._model
+        .findOne({ directGroup: null, name: name })
+        .lean();
       if (!!raw) {
         groupIdOrNull = GroupId.create(raw._id.toHexString());
       }
@@ -116,26 +134,29 @@ export class GroupRepository implements IGroupRepository {
         { $match: { _id: Types.ObjectId(groupId.toString()) } },
         {
           $graphLookup: {
-            from: 'groups',
-            startWith: '$directGroup',
-            connectFromField: 'directGroup',
-            connectToField: '_id',
-            as: 'ancestors',
-            depthField: 'searchDepth',
+            from: "groups",
+            startWith: "$directGroup",
+            connectFromField: "directGroup",
+            connectToField: "_id",
+            as: "ancestors",
+            depthField: "searchDepth",
           },
         },
         { $unwind: "$ancestors" },
-        { $sort: { 'ancestors.searchDepth': 1 } },
-        { $project: { _id: 0 ,ancestors: 1 } }, // TODO: does it work?
+        { $sort: { "ancestors.searchDepth": 1 } },
+        { $project: { _id: 0, ancestors: 1 } }, // TODO: does it work?
       ])
       .session(session || null);
-      //TODO: instead of getting ancestors directly somehow via lookup?
+    //TODO: instead of getting ancestors directly somehow via lookup?
 
-      //TODO: better way to map
-    return res.map((doc : any) => doc.ancestors._id) as Types.ObjectId[];
+    //TODO: better way to map
+    return res.map((doc: any) => doc.ancestors._id) as Types.ObjectId[];
   }
 
-  private async calculateChildrenNames(groupId: GroupId, session?: ClientSession) {
+  private async calculateChildrenNames(
+    groupId: GroupId,
+    session?: ClientSession
+  ) {
     const children = await this._model
       .find({ directGroup: groupId.toString() })
       .lean()
@@ -144,36 +165,53 @@ export class GroupRepository implements IGroupRepository {
     return children.map((g) => g.name);
   }
 
-  async save(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+  async create(
+    group: Group
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
     const persistanceState = sanitize(Mapper.toPersistance(group));
     let result: Result<void, AggregateVersionError> = ok(undefined);
     let session = await this._model.startSession();
 
     try {
       session.startTransaction();
-      const existingGroup = await this._model.findOne({ _id: group.groupId.toString() });
-      if (existingGroup) {
-        const updateOp = await this._model
-          .findOneAndReplace(
-            {
-              _id: group.groupId.toString(),
-              version: group.fetchedVersion,
-            },
-            {...persistanceState, createdAt: existingGroup.createdAt },
-          )
-          .session(session);
+      await this._model.create([persistanceState], { session });
 
-        if (!updateOp) {
-          result = err(AggregateVersionError.create(group.fetchedVersion));
-        }
-      } else {
-        await this._model.create([persistanceState], { session });
-        result = ok(undefined);
-      }
       await session.commitTransaction();
     } catch (error) {
       result = err(MongooseError.GenericError.create(error));
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
 
+    return result;
+  }
+  async update(
+    group: Group
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    const persistanceState = sanitize(Mapper.toPersistance(group));
+    let result: Result<void, AggregateVersionError> = ok(undefined);
+    let session = await this._model.startSession();
+
+    try {
+      session.startTransaction();
+      const updateOp = await this._model
+        .findOneAndReplace(
+          {
+            _id: group.groupId.toString(),
+            version: group.fetchedVersion,
+          },
+          persistanceState
+        )
+        .session(session);
+
+      if (!updateOp) {
+        result = err(AggregateVersionError.create(group.fetchedVersion));
+      }
+      result = ok(undefined);
+      await session.commitTransaction();
+    } catch (error) {
+      result = err(MongooseError.GenericError.create(error));
       await session.abortTransaction();
     } finally {
       session.endSession();

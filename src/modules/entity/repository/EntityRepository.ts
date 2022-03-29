@@ -24,7 +24,7 @@ type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 
 export interface EntityRepository extends Repository<Entity> {
-  save(entity: Entity): Promise<Result<void, AggregateVersionError>>;
+  create(entity: Entity): Promise<Result<void, AggregateVersionError>>;
   update(entity: Entity): Promise<Result<void, AggregateVersionError>>;
   getByEntityId(enityId: EntityId): Promise<Entity | null>;
   generateEntityId(): EntityId;

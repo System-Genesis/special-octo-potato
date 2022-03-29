@@ -15,12 +15,11 @@ type CreateGroupProps = {
   source: Source;
   akaUnit?: string;
   diPrefix?: string;
-
-}
+};
 
 type ChildGroupProps = CreateGroupProps & {
   parent: Group;
-}
+};
 
 interface GroupState {
   name: string;
@@ -32,19 +31,14 @@ interface GroupState {
   diPrefix?: string;
   isLeaf?: boolean;
   childrenNames?: Set<string>;
-
+  createdAt?: Date;
 }
 
-
-type UpdateDto = Partial<Omit<GroupState, "childrenNames" | "ancestors" | "source">>;
-export type UpdateResult = Result<
-  void,
-  | AppError.CannotUpdateFieldError
+type UpdateDto = Partial<
+  Omit<GroupState, "childrenNames" | "ancestors" | "source">
 >;
-export class Group
-  extends AggregateRoot
-  implements IGroup {
-
+export type UpdateResult = Result<void, AppError.CannotUpdateFieldError>;
+export class Group extends AggregateRoot implements IGroup {
   private _name: string;
   private _akaUnit?: string; // maybe value object
   private _status: string; // maybe value object
@@ -54,45 +48,42 @@ export class Group
   private _source: Source;
   private _diPrefix?: string;
   private _childrenNames: Set<string>;
+  private _createdAt?: Date;
 
   private constructor(id: GroupId, state: GroupState, opts: CreateOpts) {
     super(id, opts);
     this._name = state.name;
     this._akaUnit = state.akaUnit;
     this._source = state.source;
-    this._status = state.status || 'active';
+    this._status = state.status || "active";
     this._diPrefix = state.diPrefix;
     this._isLeaf = state.isLeaf || true;
     // this._hierarchy = state.hierarchy || Hierarchy.create('');
     this._ancestors = state.ancestors || [];
     this._childrenNames = state.childrenNames || new Set();
+    this._createdAt = state.createdAt;
   }
   public updateDetails(updateDto: UpdateDto): UpdateResult {
-
-    if (
-      has(updateDto, "name")
-    ) {
-      this._name = updateDto.name
+    if (has(updateDto, "name")) {
+      this._name = updateDto.name;
     }
 
-    if (
-      has(updateDto, "diPrefix")
-    ) {
-      this._diPrefix = updateDto.diPrefix
+    if (has(updateDto, "diPrefix")) {
+      this._diPrefix = updateDto.diPrefix;
     }
 
     this.markModified();
     return ok(undefined);
   }
 
-
-
-  public moveToParent(parent: Group): Result<void, DuplicateChildrenError | TreeCycleError> {
+  public moveToParent(
+    parent: Group
+  ): Result<void, DuplicateChildrenError | TreeCycleError> {
     if (parent._childrenNames.has(this._name)) {
       return err(DuplicateChildrenError.create(this._name, parent.name));
     }
     // check for cycles: if 'parent' is actually a decendant of this group
-    if (!!parent.ancestors.find(ancestorId => ancestorId.equals(this.id))) {
+    if (!!parent.ancestors.find((ancestorId) => ancestorId.equals(this.id))) {
       return err(TreeCycleError.create(this.name, parent.name));
     }
     const previousParentId = this.parentId;
@@ -127,11 +118,10 @@ export class Group
   //   return this._hierarchy.value();
   // }
   get ancestors() {
-    return [...this._ancestors]
+    return [...this._ancestors];
   }
   get parentId() {
-    return this._ancestors.length > 0 ?
-      this._ancestors[0] : undefined;
+    return this._ancestors.length > 0 ? this._ancestors[0] : undefined;
   }
   get akaUnit() {
     return this._akaUnit;
@@ -146,10 +136,17 @@ export class Group
     return Array.from(this._childrenNames);
   }
   get diPrefix() {
-    return this._diPrefix
+    return this._diPrefix;
   }
 
-  public createChild(groupId: GroupId, props: CreateGroupProps): Result<Group, DuplicateChildrenError> {
+  get createdAt() {
+    return this._createdAt;
+  }
+
+  public createChild(
+    groupId: GroupId,
+    props: CreateGroupProps
+  ): Result<Group, DuplicateChildrenError> {
     if (this._childrenNames.has(props.name)) {
       return err(DuplicateChildrenError.create(props.name, this.name));
     }
@@ -175,18 +172,18 @@ export class Group
     }
   }
 
-  public createRole(roleId: RoleId, props: Omit<RoleState, 'directGroup' | 'digitalIdentityUniqueId'>) {
-    return Role.createNew(
-      roleId,
-      {
-        ...props,
-        directGroup: this.groupId,
-      }
-    );
+  public createRole(
+    roleId: RoleId,
+    props: Omit<RoleState, "directGroup" | "digitalIdentityUniqueId">
+  ) {
+    return Role.createNew(roleId, {
+      ...props,
+      directGroup: this.groupId,
+    });
   }
 
   static createRoot(groupId: GroupId, props: CreateGroupProps) {
-    return Group._create(groupId, props, { isNew: true })
+    return Group._create(groupId, props, { isNew: true });
   }
 
   static _create(groupId: GroupId, state: GroupState, opts: CreateOpts): Group {

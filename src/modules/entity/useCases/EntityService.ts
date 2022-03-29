@@ -232,7 +232,7 @@ export class EntityService {
     if (entityOrError.isErr()) {
       return err(entityOrError.error);
     }
-    let val = (await this.entityRepository.save(entityOrError.value))
+    let val = (await this.entityRepository.create(entityOrError.value))
       .map(() => entityToDTO(entityOrError.value))
       .mapErr((err) => AppError.RetryableConflictError.create(err.message));
     return val;
@@ -284,7 +284,7 @@ export class EntityService {
       return err(AppError.LogicError.create(res.error.message));
     }
 
-    const saveDiRes = (await this.diRepository.save(di)).mapErr((err) =>
+    const saveDiRes = (await this.diRepository.update(di)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
     if (saveDiRes.isErr()) return saveDiRes;
@@ -343,7 +343,7 @@ export class EntityService {
     // disconnect the entityy to the digital identity
     di.disconnectEntity();
     // TODO: do it in a better way already
-    const saveDiRes = (await this.diRepository.save(di)).mapErr((err) =>
+    const saveDiRes = (await this.diRepository.update(di)).mapErr((err) =>
       AppError.RetryableConflictError.create(err.message)
     );
     if (saveDiRes.isErr()) return saveDiRes;
