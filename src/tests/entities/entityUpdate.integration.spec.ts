@@ -286,6 +286,7 @@ export const testUpdateEntity = () => {
                     });
                     const beforeCreatedAt = foundEntity.createdAt;
                     const beforeUpdatedAt = foundEntity.updatedAt;
+                    // TODO: fix to milliseconds resolution
                     await wait(1000);
                     const resEsDICreate = await request(app).post(`/api/digitalIdentities`).send(esDI).expect(200);
                     const resSfDiCreate = await request(app).post(`/api/digitalIdentities`).send(soufDI).expect(200);

@@ -275,7 +275,7 @@ export class Entity extends AggregateRoot {
         const newStateWithoutNulls = deleteNullProps(newStateWithNulls);
         const isValid = Entity.isValidEntityState(newStateWithoutNulls);
         if (isValid.isOk()) {
-            this._state = newStateWithoutNulls as EntityState;
+            this._state = newStateWithoutNulls;
         }
         this.markModified();
         return isValid;
