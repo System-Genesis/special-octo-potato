@@ -55,7 +55,7 @@ export class RoleRepository implements IRoleRepository {
         return Mapper.toDomain(raw);
     }
 
-    async save(role: Role): Promise<Result<void, AggregateVersionError>> {
+    async create(role: Role): Promise<Result<void, AggregateVersionError>> {
         const persistanceState = sanitize(Mapper.toPersistance(role));
 
         let result: Result<void, AggregateVersionError> = ok(undefined);
@@ -64,26 +64,7 @@ export class RoleRepository implements IRoleRepository {
         try {
             session.startTransaction();
 
-            const existingRole = await this._model.findOne({ roleId: role.roleId.toString() });
-
-            if (existingRole) {
-                const updateOp = await this._model.updateOne(
-                    {
-                        roleId: role.roleId.toString(),
-                        version: role.fetchedVersion,
-                    },
-                    persistanceState,
-                    { session },
-                );
-
-                if (updateOp.n === 0) {
-                    result = err(AggregateVersionError.create(role.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
-            }
-
+            await this._model.create([persistanceState], { session });
             await session.commitTransaction();
         } catch (error) {
             result = err(MongooseError.GenericError.create(error));
@@ -96,42 +77,37 @@ export class RoleRepository implements IRoleRepository {
         return result;
     }
 
-    // TODO: to good to be true need refactor
-    async removeFields(role: Role, fieldsToRemove: string[]): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async update(role: Role): Promise<Result<void, AggregateVersionError>> {
         const persistanceState = sanitize(Mapper.toPersistance(role));
+
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
-        const fieldsQuery = Object.fromEntries(fieldsToRemove.map((field) => [field, 1]));
+
         try {
             session.startTransaction();
-            const existingRole = await this._model.findOne({
-                roleId: role.roleId.toString(),
-            });
-            if (existingRole) {
-                const updateOp = await this._model
-                    .updateOne(
-                        {
-                            roleId: role.roleId.toString(),
-                            version: role.fetchedVersion,
-                        },
-                        { $unset: fieldsQuery },
-                    )
-                    .session(session);
 
-                if (updateOp.n === 0) {
-                    result = err(AggregateVersionError.create(role.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
+            const updateOp = await this._model.findOneAndReplace(
+                {
+                    roleId: role.roleId.toString(),
+                    version: role.fetchedVersion,
+                },
+                persistanceState,
+                { session },
+            );
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(role.fetchedVersion));
             }
+
             await session.commitTransaction();
         } catch (error) {
             result = err(MongooseError.GenericError.create(error));
+
             await session.abortTransaction();
         } finally {
             session.endSession();
         }
+
         return result;
     }
 }

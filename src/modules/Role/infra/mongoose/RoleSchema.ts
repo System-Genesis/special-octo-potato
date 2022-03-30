@@ -8,6 +8,8 @@ export interface RoleDoc {
     digitalIdentityUniqueId?: string;
     clearance?: string;
     version: number;
+    createdAt?: Date;
+    updatedAt?: Date;
     // hierarchyIds: string[];
     // hierarchy: string;
 }

@@ -17,6 +17,7 @@ export class DigitalIdentityMapper {
             isRoleAttachable: digitalIdentity.canConnectRole,
             version: digitalIdentity.version,
             upn: digitalIdentity.upn,
+            createdAt: digitalIdentity.createdAt,
         };
         if (digitalIdentity.connectedEntityId) {
             persistanced.entityId = Types.ObjectId(digitalIdentity.connectedEntityId.toString());
@@ -38,6 +39,7 @@ export class DigitalIdentityMapper {
                 canConnectRole: raw.isRoleAttachable,
                 entityId: !!entityId ? EntityId.create(entityId.toHexString()) : undefined,
                 upn: raw.upn,
+                createdAt: raw.createdAt,
             },
             { isNew: false, savedVersion: raw.version },
         )._unsafeUnwrap();

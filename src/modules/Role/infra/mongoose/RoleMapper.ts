@@ -17,6 +17,7 @@ export class RoleMapper {
             digitalIdentityUniqueId: role.digitalIdentityUniqueId?.toString(),
             clearance: role.clearance,
             version: role.version,
+            createdAt: role.createdAt,
         };
     }
 
@@ -34,6 +35,7 @@ export class RoleMapper {
                 jobTitle: raw.jobTitle,
                 digitalIdentityUniqueId: !!di_uid ? DigitalIdentityId.create(di_uid)._unsafeUnwrap() : undefined,
                 clearance: raw.clearance,
+                createdAt: raw.createdAt,
             },
             { isNew: false, savedVersion: raw.version },
         );

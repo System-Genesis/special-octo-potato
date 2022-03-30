@@ -64,7 +64,7 @@ export class DigitalIdentityService {
         if (await this.diRepository.exists(uid.value)) {
             return err(DigitalIdentityAlreadyExistsError.create(createDTO.uniqueId));
         }
-        return (await this.diRepository.save(digitalIdentity.value)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.diRepository.create(digitalIdentity.value)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     async updateDigitalIdentity(
@@ -90,7 +90,7 @@ export class DigitalIdentityService {
                 digitalIdentity.disableRoleConnectable();
             }
         }
-        return (await this.diRepository.save(digitalIdentity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.diRepository.update(digitalIdentity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     async deleteDigitalIdentity(id: string): Promise<Result<void, BaseError>> {

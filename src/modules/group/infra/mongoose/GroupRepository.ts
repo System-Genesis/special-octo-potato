@@ -144,36 +144,49 @@ export class GroupRepository implements IGroupRepository {
         return children.map((g) => g.name);
     }
 
-    async save(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async create(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = sanitize(Mapper.toPersistance(group));
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
         try {
             session.startTransaction();
-            const existingGroup = await this._model.findOne({ _id: group.groupId.toString() });
-            if (existingGroup) {
-                const updateOp = await this._model
-                    .updateOne(
-                        {
-                            _id: group.groupId.toString(),
-                            version: group.fetchedVersion,
-                        },
-                        persistanceState,
-                    )
-                    .session(session);
+            await this._model.create([persistanceState], { session });
 
-                if (updateOp.n === 0) {
-                    result = err(AggregateVersionError.create(group.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
-            }
             await session.commitTransaction();
         } catch (error) {
             result = err(MongooseError.GenericError.create(error));
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
+        }
 
+        return result;
+    }
+    async update(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+        const persistanceState = sanitize(Mapper.toPersistance(group));
+        let result: Result<void, AggregateVersionError> = ok(undefined);
+        let session = await this._model.startSession();
+
+        try {
+            session.startTransaction();
+            const updateOp = await this._model
+                .findOneAndReplace(
+                    {
+                        _id: group.groupId.toString(),
+                        version: group.fetchedVersion,
+                    },
+                    persistanceState,
+                )
+                .session(session);
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(group.fetchedVersion));
+            }
+            result = ok(undefined);
+            await session.commitTransaction();
+        } catch (error) {
+            result = err(MongooseError.GenericError.create(error));
             await session.abortTransaction();
         } finally {
             session.endSession();

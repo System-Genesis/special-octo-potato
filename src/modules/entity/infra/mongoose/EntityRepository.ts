@@ -41,7 +41,10 @@ export class EntityRepository implements IEntityRepository {
         }
         // TODO (D): if use function exists, use exists instead of findOne
         const res = await this._model
-            .findOne({ ...{ [identifierName]: identifier.toString() }, ...(organization && { organization: organization.value }) })
+            .findOne({
+                ...{ [identifierName]: identifier.toString() },
+                ...(organization && { organization: organization.value }),
+            })
             .lean()
             .select('_id');
         return !!res;
@@ -58,33 +61,45 @@ export class EntityRepository implements IEntityRepository {
         return Mapper.toDomain(raw);
     }
 
-    async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async create(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = sanitize(Mapper.toPersistance(entity));
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
         try {
             session.startTransaction();
-            const existingEntity = await this._model.findOne({
-                _id: entity.entityId.toString(),
-            });
-            if (existingEntity) {
-                const updateOp = await this._model
-                    .updateOne(
-                        {
-                            _id: entity.entityId.toString(),
-                            version: entity.fetchedVersion,
-                        },
-                        persistanceState,
-                    )
-                    .session(session);
+            await this._model.create([persistanceState], { session });
+            await session.commitTransaction();
+        } catch (error) {
+            result = err(MongooseError.GenericError.create(error));
 
-                if (updateOp.n === 0) {
-                    result = err(AggregateVersionError.create(entity.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
+        }
+        return result;
+    }
+
+    async update(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+        const persistanceState = sanitize(Mapper.toPersistance(entity));
+        let result: Result<void, AggregateVersionError> = ok(undefined);
+        let session = await this._model.startSession();
+
+        try {
+            session.startTransaction();
+
+            const updateOp = await this._model
+                .findOneAndReplace(
+                    {
+                        _id: entity.entityId.toString(),
+                        version: entity.fetchedVersion,
+                    },
+                    persistanceState,
+                )
+                .session(session);
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(entity.fetchedVersion));
             }
             await session.commitTransaction();
         } catch (error) {

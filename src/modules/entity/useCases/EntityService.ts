@@ -20,7 +20,7 @@ import { DigitalIdentityId } from '../../digitalIdentity/domain/DigitalIdentityI
 import { Phone, MobilePhone } from '../domain/phone';
 import { UniqueArray } from '../../../utils/UniqueArray';
 import { filterNullOrUndefined, toArray } from '../../../utils/arrayUtils';
-import { has } from '../../../utils/ObjectUtils';
+import { extractNullKeys, has } from '../../../utils/ObjectUtils';
 import { AppError } from '../../../core/logic/AppError';
 import { IllegalEntityStateError } from '../domain/errors/IllegalEntityStateError';
 import { DigitalIdentityRepository } from '../../digitalIdentity/repository/DigitalIdentityRepository';
@@ -173,7 +173,7 @@ export class EntityService {
         if (entityOrError.isErr()) {
             return err(entityOrError.error);
         }
-        let val = (await this.entityRepository.save(entityOrError.value))
+        let val = (await this.entityRepository.create(entityOrError.value))
             .map(() => entityToDTO(entityOrError.value))
             .mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return val;
@@ -207,11 +207,11 @@ export class EntityService {
             return err(AppError.LogicError.create(res.error.message));
         }
 
-        const saveDiRes = (await this.diRepository.save(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveDiRes = (await this.diRepository.update(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (saveDiRes.isErr()) return saveDiRes;
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveEntityRes = (await this.entityRepository.update(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveEntityRes;
     }
 
@@ -242,14 +242,12 @@ export class EntityService {
         // disconnect the entityy to the digital identity
         di.disconnectEntity();
         // TODO: do it in a better way already
-        const saveDiRes = (await this.diRepository.removeFields(di, ['entityId', 'upn'])).mapErr((err) =>
-            AppError.RetryableConflictError.create(err.message),
-        );
+        const saveDiRes = (await this.diRepository.update(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (saveDiRes.isErr()) return saveDiRes;
 
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveEntityRes = (await this.entityRepository.update(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveEntityRes;
     }
 
@@ -281,14 +279,8 @@ export class EntityService {
         }
         const { pictures, personalNumber, identityCard, goalUserId, serviceType, rank, sex, phone, mobilePhone, akaUnit, entityType, ...rest } =
             updateDTO;
+        // for arrOfNulls
         // try to update entity for each existing field in the DTO
-        if (entityType) {
-            const newEntityType = castToEntityType(entityType).mapErr(AppError.ValueValidationError.create);
-            if (newEntityType.isErr()) {
-                return err(newEntityType.error);
-            }
-            changes.push(entity.updateDetails({ entityType: newEntityType.value }));
-        }
         if (personalNumber) {
             const newPersonalNumber = PersonalNumber.create(personalNumber).mapErr(AppError.ValueValidationError.create);
             if (newPersonalNumber.isErr()) {
@@ -324,6 +316,13 @@ export class EntityService {
                 }
                 changes.push(entity.updateDetails({ goalUserId: newGoalUserId.value }));
             }
+        }
+        if (entityType) {
+            const newEntityType = castToEntityType(entityType).mapErr(AppError.ValueValidationError.create);
+            if (newEntityType.isErr()) {
+                return err(newEntityType.error);
+            }
+            changes.push(entity.updateDetails({ entityType: newEntityType.value }));
         }
         if (serviceType) {
             const newServiceType = ServiceType.create(serviceType).mapErr(AppError.ValueValidationError.create);
@@ -382,9 +381,9 @@ export class EntityService {
                 changes.push(entity.updateProfilePicture(pictures.profile));
             }
         }
-
-        // update the rest fields that dont require value validation
-        changes.push(entity.updateDetails(rest));
+        // update the rest fields that dont require value validation and delete fields requested
+        const propsToDelete = extractNullKeys(updateDTO);
+        changes.push(entity.updateDetails({ ...rest, ...propsToDelete }));
 
         // check that all entity update calls returned success result
         const result = combine(changes);
@@ -392,7 +391,7 @@ export class EntityService {
             return err(result.error);
         }
         // finally, save the entity
-        return (await this.entityRepository.save(entity))
+        return (await this.entityRepository.update(entity))
             .map(() => entityToDTO(entity)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }

@@ -10,7 +10,7 @@ export abstract class ResponseHandler {
     }
 
     static jsonResponse(res: Response, code: number, message: string, detail?: any) {
-        console.log(message);
+        // console.log(message)
         return res.status(code).json({ message, ...detail });
     }
 

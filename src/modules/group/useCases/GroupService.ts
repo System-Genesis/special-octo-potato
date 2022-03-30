@@ -55,7 +55,11 @@ export class GroupService {
             if (group.isErr()) {
                 const childGroupId = await this.groupRepository.getByNameAndParentId(createDTO.name, parentId);
                 if (childGroupId) {
-                    return err(AppError.AlreadyExistsError.create('group', { id: childGroupId.toString() }));
+                    return err(
+                        AppError.AlreadyExistsError.create('group', {
+                            id: childGroupId.toString(),
+                        }),
+                    );
                 } else {
                     return err(AppError.UnexpectedError.create());
                 }
@@ -79,7 +83,7 @@ export class GroupService {
             );
         }
 
-        const saveGroupRes = (await this.groupRepository.save(group.value))
+        const saveGroupRes = (await this.groupRepository.create(group.value))
             .map(() => groupToDTO(group._unsafeUnwrap())) // TODO why the fuck TS doesn't recognize the correct type
             .mapErr((err) => {
                 return AppError.RetryableConflictError.create(err.message);
@@ -87,7 +91,7 @@ export class GroupService {
 
         if (saveGroupRes.isErr()) return saveGroupRes;
         if (parent) {
-            const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+            const saveParentRes = (await this.groupRepository.update(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
             if (saveParentRes.isErr()) return err(AppError.UnexpectedError.create(saveParentRes.error.message));
         }
         // TODO: use saveParentRes or do it in some other way?
@@ -129,7 +133,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.save(group))
+        return (await this.groupRepository.update(group))
             .map(() => groupToDTO(group as Group)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }
@@ -151,7 +155,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.save(group))
+        return (await this.groupRepository.update(group))
             .map(() => groupToDTO(group as Group)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }
@@ -178,7 +182,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.save(group)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.groupRepository.update(group)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     // TODO: update group (rename)
@@ -210,7 +214,7 @@ export class GroupService {
         parent.deleteChild();
         const deleteGroupRes = (await this.groupRepository.delete(groupId)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (deleteGroupRes.isErr()) return deleteGroupRes;
-        const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveParentRes = (await this.groupRepository.update(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveParentRes;
     }
 }

@@ -6,8 +6,8 @@
       "upnSource": "ads_name",
       "weakSource": ["mir_name"],
       "primaryMap": {
-        "ads": "sf_name",
-        "unit2": "es"
+        "sf1": "sf_name",
+        "es1": "es_name"
       }
     },
     "rank": {
@@ -15,6 +15,9 @@
     },
     "serviceType": {
       "values": ["A", "B", "C", "D", "E", "F", "G"]
+    },
+    "organizations": {
+      "values": ["org1", "org2"]
     },
     "digitalIdentityId": {
       "domain": {

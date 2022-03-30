@@ -10,6 +10,8 @@ export interface DigitalIdentityDoc {
     isRoleAttachable?: boolean;
     entityId?: Types.ObjectId;
     version: number;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 const schema = new Schema<DigitalIdentityDoc, Model<DigitalIdentityDoc>, DigitalIdentityDoc>(

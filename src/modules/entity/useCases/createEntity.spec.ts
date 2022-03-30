@@ -13,7 +13,7 @@ describe('Create Entity', () => {
                 let mockEntitiesRepo = createMock<EntityRepository>();
                 let mockDIsRepo = createMock<DigitalIdentityRepository>();
 
-                const mockSaveMethod = On(mockEntitiesRepo).get(method((mock) => mock.save));
+                const mockSaveMethod = On(mockEntitiesRepo).get(method((mock) => mock.create));
 
                 let entityService = new EntityService(mockEntitiesRepo, mockDIsRepo);
 
@@ -26,7 +26,7 @@ describe('Create Entity', () => {
                 });
 
                 // console.log('result: ', (result as any).value);
-                expect(mockEntitiesRepo.save).toHaveBeenCalled();
+                expect(mockEntitiesRepo.create).toHaveBeenCalled();
             });
         });
     });

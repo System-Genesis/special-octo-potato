@@ -54,7 +54,7 @@ export class RoleService {
             jobTitle: createRoleDTO.jobTitle,
             clearance: createRoleDTO.clearance,
         });
-        return (await this.roleRepository.save(role)).mapErr((err) => {
+        return (await this.roleRepository.create(role)).mapErr((err) => {
             return AppError.RetryableConflictError.create(err.message);
         });
     }
@@ -101,7 +101,7 @@ export class RoleService {
         if (res.isErr()) {
             return err(res.error);
         }
-        return (await this.roleRepository.save(role)).mapErr((err) => {
+        return (await this.roleRepository.update(role)).mapErr((err) => {
             return AppError.RetryableConflictError.create(err.message);
         });
     }
@@ -135,9 +135,7 @@ export class RoleService {
             // TODO: better error type
         }
         role.disconnectDigitalIdentity();
-        const saveRoleRes = (await this.roleRepository.removeFields(role, ['digitalIdentityUniqueId'])).mapErr((err) =>
-            AppError.RetryableConflictError.create(err.message),
-        );
+        const saveRoleRes = (await this.roleRepository.update(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveRoleRes;
     }
 
@@ -164,7 +162,7 @@ export class RoleService {
         if (has(updateDTO, 'jobTitle')) {
             role.updateJob(updateDTO.jobTitle);
         }
-        return (await this.roleRepository.save(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.roleRepository.update(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     /**
@@ -191,7 +189,7 @@ export class RoleService {
             return err(SourceMisMatchError.create(roleSource, groupSource));
         }
         role.moveToGroup(group);
-        return (await this.roleRepository.save(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.roleRepository.update(role)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     async deleteRole(roleId: string): Promise<Result<any, BaseError>> {

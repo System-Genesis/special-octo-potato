@@ -12,6 +12,8 @@ export interface GroupDoc {
     akaUnit?: string;
     isLeaf: boolean;
     version: number;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 const schema = new Schema<GroupDoc, Model<GroupDoc>, GroupDoc>(
