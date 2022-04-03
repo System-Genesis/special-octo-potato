@@ -1,4 +1,4 @@
-import { Logger } from "./logger";
+import Logger from "./logger";
 import _logger  from 'logger-genesis';
 
 // TODO: should initiate here?

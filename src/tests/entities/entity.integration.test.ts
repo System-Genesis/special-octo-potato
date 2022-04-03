@@ -5,11 +5,10 @@ import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { emptyDB, findByQuery, findOneByQuery } from "../setup/seedUtils";
 import * as http from "http";
 import { start as startServer, app } from "../../shared/infra/http/app";
-import { Logger } from "../../shared/infra/rabbit/logger";
 import { testCreateEntity } from "./entityCreate.integration.spec";
 //import { testUpdateGroup } from './entityCreate.integration.spec'
 
-const mockLogger = jest.mock('../../shared/infra/rabbit/logger');
+// jest.mock('logger-genesis');
 
 export let server: http.Server;
 let replset: MongoMemoryReplSet;

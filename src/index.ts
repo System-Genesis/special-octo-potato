@@ -18,6 +18,7 @@ export const startApp = (async () => {
       onFailedAttempt: err => console.log(`[RABBIT LOGGER]: connection attempt ${err.attemptNumber} failed`),
     });
     console.log('[DB]: connected successfully');
+    console.log('[LOGGER]: connected successfully');
   } catch (err) {
     console.error(err);
   }

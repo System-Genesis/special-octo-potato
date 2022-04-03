@@ -1,6 +1,6 @@
+import { ILogger } from './../../../core/infra/logger';
 import { logEntity } from './../logger/parser';
 
-import { Logger } from './../../../shared/infra/rabbit/logger';
 import { InvalidOrganizationValue } from './errors/InvalidOrganizationValue';
 import { MissingOrganizationEmployee } from './errors/MissingOrganizationEmployee';
 import { Organization } from './../domain/Organization';
@@ -39,7 +39,7 @@ import { HasDigitalIdentityAttached } from './errors/HasDigitalIdentityAttached'
 import { BaseError } from '../../../core/logic/BaseError';
 
 export class EntityService {
-  constructor(private entityRepository: EntityRepository, private diRepository: DigitalIdentityRepository, private logger: Logger) { }
+  constructor(private entityRepository: EntityRepository, private diRepository: DigitalIdentityRepository, private logger: ILogger) { }
 
   async createEntity(
     createEntityDTO: CreateEntityDTO
@@ -56,36 +56,34 @@ export class EntityService {
   > {
     let personalNumber, identityCard, employeeNumber, organization, serviceType, rank, goalUserId, phone, mobilePhone, sex, profilePicture;
     // check entity type
-    const entityType = castToEntityType(createEntityDTO.entityType).mapErr(AppError.ValueValidationError.create);
+    const entityType = castToEntityType(createEntityDTO.entityType);
     if (entityType.isErr()) {
-      return err(entityType.error);
+      return err(AppError.ValueValidationError.create(entityType.error, 'INVALID_ENTITY_TYPE'));
       
     }
     // extract all identifiers and check for duplicates for each one:
     if (has(createEntityDTO, 'personalNumber')) {
-      personalNumber = PersonalNumber.create(createEntityDTO.personalNumber).mapErr(
-        AppError.ValueValidationError.create
-      );
+      personalNumber = PersonalNumber.create(createEntityDTO.personalNumber);
       if (personalNumber.isErr()) {
-        return err(personalNumber.error);
+        return err(AppError.ValueValidationError.create(personalNumber.error, 'INVALID_PERSONAL_NUMBER'));
       }
       if (await this.entityRepository.exists(personalNumber.value)) {
         return err(PersonalNumberAlreadyExistsError.create(createEntityDTO.personalNumber));
       }
     }
     if (has(createEntityDTO, 'identityCard')) {
-      identityCard = IdentityCard.create(createEntityDTO.identityCard).mapErr(AppError.ValueValidationError.create);
+      identityCard = IdentityCard.create(createEntityDTO.identityCard);
       if (identityCard.isErr()) {
-        return err(identityCard.error);
+        return err(AppError.ValueValidationError.create(identityCard.error, 'INVALID_IDCARD_NUMBER'));
       }
       if (await this.entityRepository.exists(identityCard.value)) {
         return err(IdentityCardAlreadyExistsError.create(createEntityDTO.identityCard));
       }
     }
     if (has(createEntityDTO, 'goalUserId')) {
-      goalUserId = DigitalIdentityId.create(createEntityDTO.goalUserId).mapErr(AppError.ValueValidationError.create);
+      goalUserId = DigitalIdentityId.create(createEntityDTO.goalUserId);
       if (goalUserId.isErr()) {
-        return err(goalUserId.error);
+        return err(AppError.ValueValidationError.create(goalUserId.error, 'INVALID_GOALUSER_ID'));
       }
       if (await this.entityRepository.exists(goalUserId.value)) {
         return err(GoalUserIdAlreadyExistsError.create(createEntityDTO.goalUserId));
@@ -117,6 +115,7 @@ export class EntityService {
     if (has(createEntityDTO, 'rank')) {
       rank = Rank.create(createEntityDTO.rank).mapErr(AppError.ValueValidationError.create);
       if (rank.isErr()) {
+        this.logger.logInfo(logEntity(createEntityDTO, 'entity created', ''), false)
         return err(rank.error);
       }
     }
@@ -128,10 +127,9 @@ export class EntityService {
     }
     if (has(createEntityDTO, 'phone')) {
       phone = combine(toArray(createEntityDTO.phone).map(Phone.create))
-        .mapErr(AppError.ValueValidationError.create)
         .map(UniqueArray.fromArray);
       if (phone.isErr()) {
-        return err(phone.error);
+        return err(AppError.ValueValidationError.create(phone.error, 'INVALID_PHONE'));
       }
     }
     if (has(createEntityDTO, 'mobilePhone')) {

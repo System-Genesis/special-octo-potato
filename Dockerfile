@@ -4,6 +4,7 @@ COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
 RUN npm install --silent --progress=false
 COPY . .
 RUN npm run build
+RUN npm run test-all
 
 EXPOSE 4000
 

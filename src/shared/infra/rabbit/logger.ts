@@ -2,7 +2,7 @@ import { loggerConfig } from './connection';
 import { LoggerGenesis } from 'logger-genesis';
 import { entityLog } from './../../../core/infra/logger';
 import { ILogger } from '../../../core/infra/logger';
-export class Logger implements ILogger {
+export default class Logger implements ILogger {
     
   private _logger;
 
@@ -12,7 +12,7 @@ export class Logger implements ILogger {
     }
 
     async initialize(rabbitConfig: loggerConfig) {
-      await this._logger.initialize(rabbitConfig.systemName, rabbitConfig.serviceName, rabbitConfig.rabbit.loggerQueue, true);
+      await this._logger.initialize(rabbitConfig.systemName, rabbitConfig.serviceName, rabbitConfig.rabbit.loggerQueue, true, rabbitConfig.rabbit.uri);
     };
 
     logInfo(t: entityLog, local: boolean) {

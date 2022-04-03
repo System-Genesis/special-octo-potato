@@ -20,7 +20,7 @@ export namespace AppError {
 
   export class CannotUpdateFieldError extends BaseError {
     private constructor(fieldName: string) {
-      super(`cannot update field: ${fieldName}`);
+      super(`cannot update field: ${fieldName}`, 'CANNOT_UPDATE_FIELD');
     }
 
     static create(fieldName: string) {
@@ -29,28 +29,27 @@ export namespace AppError {
   }
 
   export class ValueValidationError extends BaseError {
-    private constructor(msg: string) {
-      super(msg);
+    private constructor(msg: string, title?: string) {
+      super(msg, title);
     }
-    static create(msg: string) {
-      return new ValueValidationError(msg);
+    static create(msg: string, title?: string, ) {
+      return new ValueValidationError(msg, title);
     }
   }
 
   export class LogicError extends BaseError {
-    private constructor(msg: string) {
-      super(msg);
+    private constructor(msg: string, title?: string) {
+      super(msg, title);
     }
-    static create(msg: string) {
-      return new LogicError(msg);
+    static create(msg: string, title?: string) {
+      return new LogicError(msg, title);
     }
   }
 
   export class ResourceNotFound extends BaseError {
     private _resource: string;
-
-    private constructor(resource: string, resourceType: string) {
-      super(`resource ${resourceType}: ${resource} does not exist`);
+    private constructor(resource: string, resourceType: string, title: string) {
+      super(`resource ${resourceType}: ${resource} does not exist`, title);
       this._resource = resource;
     }
 
@@ -58,16 +57,16 @@ export namespace AppError {
       return this._resource;
     }
 
-    static create(resource: string, resourceType: string = '') {
-      return new ResourceNotFound(resource, resourceType);
+    static create(resource: string, resourceType: string = '', title: string = 'RESOURCE_NOT_FOUND') {
+      return new ResourceNotFound(resource, resourceType, title);
     }
   }
 
   export class AlreadyExistsError extends BaseError {
     private _idDetail: Object;
 
-    private constructor(object: string, idDetail: Object) {
-      super(`${object} already exists`);
+    private constructor(object: string, idDetail: Object, title: string) {
+      super(`${object} already exists`, title);
       this._idDetail = idDetail;
     }
 
@@ -75,8 +74,8 @@ export namespace AppError {
       return this._idDetail;
     }
 
-    static create(object: string, idDetail: Object) {
-      return new AlreadyExistsError(object, idDetail);
+    static create(object: string, idDetail: Object, title: string = 'ALREADY_EXISTS_ERR') {
+      return new AlreadyExistsError(object, idDetail, title);
     }
   }
 
