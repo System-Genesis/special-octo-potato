@@ -3,23 +3,25 @@ import { entityLog } from './../../../core/infra/logger';
 import { sanitize } from '../../../utils/ObjectUtils';
 import { Entity } from './../domain/Entity';
 
-export const logEntity = (entity: Partial<Entity> | Partial<CreateEntityDTO>, title: string, message: string): entityLog => {
+// TODO: better type for body
+export const logEntity = (entity: Entity | CreateEntityDTO, message: string, title: string, body?: Object): entityLog => {
     const identifiers = getEntityIdentifiers(entity);
     return {
         identifiers,
         title,
-        message
+        message,
+        body : body ? body : {},
     }
 }
 
 // TODO: add entityId and figure out a type accordingly
-export const getEntityIdentifiers = (entity: Partial<Entity> | Partial<CreateEntityDTO>) => {
+export const getEntityIdentifiers = (entity: Entity | CreateEntityDTO) => {
     const identifiers = {
       personalNumber: entity.personalNumber?.toString(),
       identityCard: entity.identityCard?.toString(),
       goalUserId: entity.goalUserId?.toString(),
       employeeNumber: entity.employeeNumber?.toString(),
-      // id: entity.entityId?.toString(),
+      id: (entity as Entity).entityId?.toString(),
     }
     return sanitize(identifiers)
   }

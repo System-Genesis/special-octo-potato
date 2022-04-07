@@ -19,12 +19,12 @@ export namespace AppError {
   }
 
   export class CannotUpdateFieldError extends BaseError {
-    private constructor(fieldName: string) {
-      super(`cannot update field: ${fieldName}`, 'CANNOT_UPDATE_FIELD');
+    private constructor(fieldName: string, title: string) {
+      super(`cannot update field: ${fieldName}`, title);
     }
 
-    static create(fieldName: string) {
-      return new CannotUpdateFieldError(fieldName);
+    static create(fieldName: string, title: string = 'CANNOT_UPDATE_FIELD') {
+      return new CannotUpdateFieldError(fieldName, title);
     }
   }
 

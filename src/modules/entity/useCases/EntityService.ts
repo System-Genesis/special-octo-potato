@@ -1,3 +1,4 @@
+import { ConnectDigitalIdentityDTO } from './dtos/ConnectDigitalIdentityDTO';
 import { ILogger } from './../../../core/infra/logger';
 import { logEntity } from './../logger/parser';
 
@@ -27,7 +28,6 @@ import { extractNullKeys, has } from '../../../utils/ObjectUtils';
 import { AppError } from '../../../core/logic/AppError';
 import { IllegalEntityStateError } from '../domain/errors/IllegalEntityStateError';
 import { DigitalIdentityRepository } from '../../digitalIdentity/repository/DigitalIdentityRepository';
-import { ConnectDigitalIdentityDTO } from './dtos/ConnectDigitalIdentityDTO';
 import { UpdateEntityDTO } from './dtos/UpdateEntityDTO';
 import { CannotChangeEntityTypeError } from '../domain/errors/CannotChangeEntityTypeError';
 import { GoalUserIdAlreadyExistsError } from './errors/GoalUserIdAlreadyExistsError';
@@ -58,14 +58,18 @@ export class EntityService {
     // check entity type
     const entityType = castToEntityType(createEntityDTO.entityType);
     if (entityType.isErr()) {
-      return err(AppError.ValueValidationError.create(entityType.error, 'INVALID_ENTITY_TYPE'));
+      const Err = AppError.ValueValidationError.create(entityType.error, 'INVALID_ENTITY_TYPE');
+      this.logger.logError(logEntity(createEntityDTO, Err.message, Err.title), false)
+      return err(Err);
       
     }
     // extract all identifiers and check for duplicates for each one:
     if (has(createEntityDTO, 'personalNumber')) {
       personalNumber = PersonalNumber.create(createEntityDTO.personalNumber);
       if (personalNumber.isErr()) {
-        return err(AppError.ValueValidationError.create(personalNumber.error, 'INVALID_PERSONAL_NUMBER'));
+        const Err = AppError.ValueValidationError.create(personalNumber.error, 'INVALID_PERSONAL_NUMBER');
+        this.logger.logError(logEntity(createEntityDTO, Err.message, Err.title), false)
+        return err(Err);
       }
       if (await this.entityRepository.exists(personalNumber.value)) {
         return err(PersonalNumberAlreadyExistsError.create(createEntityDTO.personalNumber));
@@ -179,7 +183,7 @@ export class EntityService {
     if (entityOrError.isErr()) {
       return err(entityOrError.error);
     }
-    this.logger.logInfo(logEntity(entityOrError.value, 'entity created', ''), false)
+    this.logger.logInfo(logEntity(entityOrError.value, 'entity created', 'ENTITY_CREATED'), false)
     let val = (await this.entityRepository.save(entityOrError.value))
       .map(() => entityToDTO(entityOrError.value))
       .mapErr((err) => AppError.RetryableConflictError.create(err.message));
@@ -223,9 +227,15 @@ export class EntityService {
     if (saveDiRes.isErr()) return saveDiRes;
     const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
     entity.choosePrimaryDigitalIdentity(connectedDIs);
-    const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) =>
-      AppError.RetryableConflictError.create(err.message)
-    );
+    const saveEntityRes = (await this.entityRepository.save(entity)).map((res) => {
+      this.logger.logInfo(logEntity(entity, 'Entity Updated', 'ENTITY_UPDATE', connectDTO), false)
+      return res;
+    }).
+    mapErr((err) => {
+      const resErr = AppError.RetryableConflictError.create(err.message);
+      this.logger.logError(logEntity(entity, err.message, err.title), false)
+      return resErr;
+    });
     return saveEntityRes;
   }
 
@@ -269,9 +279,16 @@ export class EntityService {
 
     const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
     entity.choosePrimaryDigitalIdentity(connectedDIs);
-    const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) =>
-      AppError.RetryableConflictError.create(err.message)
-    );
+    const saveEntityRes = (await this.entityRepository.save(entity))
+    .map((res) => {
+      this.logger.logInfo(logEntity(entity, 'Entity Updated', 'ENTITY_UPDATE', disconnectDTO), false)
+      return res;
+    }) // return DTO
+    .mapErr((err) => {
+      const resErr = AppError.RetryableConflictError.create(err.message);
+      this.logger.logError(logEntity(entity, err.message, err.title), false)
+      return resErr;
+    })
     return saveEntityRes;
   }
 
@@ -413,12 +430,21 @@ export class EntityService {
     // check that all entity update calls returned success result
     const result = combine(changes);
     if (result.isErr()) {
+      this.logger.logError(logEntity(entity, result.error.message, result.error.title), false)
       return err(result.error);
     }
     // finally, save the entity
     return (await this.entityRepository.save(entity))
-      .map(() => entityToDTO(entity)) // return DTO
-      .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
+      .map(() => {
+        this.logger.logInfo(logEntity(entity, 'Entity Updated', 'ENTITY_UPDATE', updateDTO), false)
+        return entityToDTO(entity)
+      }) // return DTO
+      .mapErr((err) => {
+        const resErr = AppError.RetryableConflictError.create(err.message);
+        this.logger.logError(logEntity(entity, err.message, err.title), false)
+        return resErr;
+      })
+        ; // or Error
   }
 
   async deleteEntity(id: string): Promise<Result<any, BaseError>> {
@@ -438,8 +464,14 @@ export class EntityService {
     // if(digitalIdentities.length !=0){
     //   return err(HasDigitalIdentityAttached.create(id));
     // }
-    return (await this.entityRepository.delete(entityId)).mapErr((err) =>
-      AppError.RetryableConflictError.create(err.message)
-    );
+    return (await this.entityRepository.delete(entityId)).map((res) => {
+      this.logger.logInfo(logEntity(entity, 'Entity Deleted', 'ENTITY_DELETE'), false)
+      return res;
+    })
+    .mapErr((err) => {
+      const resErr = AppError.RetryableConflictError.create(err.message);
+      this.logger.logError(logEntity(entity, err.message, err.title), false)
+      return resErr;
+    });
   }
 }

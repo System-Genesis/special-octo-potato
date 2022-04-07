@@ -16,7 +16,7 @@ export default class Logger implements ILogger {
     };
 
     logInfo(t: entityLog, local: boolean) {
-        this._logger.info(!local, 'APP', t.title, t.message, { identifiers: t.identifiers });
+        this._logger.info(!local, 'APP', t.title, t.message, { identifiers: t.identifiers, body: t.body });
     }
 
     logError(t: entityLog, local: boolean) {

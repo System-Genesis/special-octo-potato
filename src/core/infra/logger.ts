@@ -11,6 +11,7 @@ export interface entityLog {
   };
   message: string,
   title: string,
+  body?: Object,
 }
 
 export interface ILogger {

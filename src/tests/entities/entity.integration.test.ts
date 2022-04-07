@@ -8,7 +8,7 @@ import { start as startServer, app } from "../../shared/infra/http/app";
 import { testCreateEntity } from "./entityCreate.integration.spec";
 //import { testUpdateGroup } from './entityCreate.integration.spec'
 
-// jest.mock('logger-genesis');
+jest.mock('logger-genesis');
 
 export let server: http.Server;
 let replset: MongoMemoryReplSet;
