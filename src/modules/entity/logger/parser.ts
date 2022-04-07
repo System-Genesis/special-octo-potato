@@ -10,18 +10,18 @@ export const logEntity = (entity: Entity | CreateEntityDTO, message: string, tit
         identifiers,
         title,
         message,
-        body : body ? body : {},
-    }
-}
+        body: body ? body : {},
+    };
+};
 
 // TODO: add entityId and figure out a type accordingly
 export const getEntityIdentifiers = (entity: Entity | CreateEntityDTO) => {
     const identifiers = {
-      personalNumber: entity.personalNumber?.toString(),
-      identityCard: entity.identityCard?.toString(),
-      goalUserId: entity.goalUserId?.toString(),
-      employeeNumber: entity.employeeNumber?.toString(),
-      id: (entity as Entity).entityId?.toString(),
-    }
-    return sanitize(identifiers)
-  }
+        personalNumber: entity.personalNumber?.toString(),
+        identityCard: entity.identityCard?.toString(),
+        goalUserId: entity.goalUserId?.toString(),
+        employeeNumber: entity.employeeNumber?.toString(),
+        id: (entity as Entity).entityId?.toString(),
+    };
+    return sanitize(identifiers);
+};

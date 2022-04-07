@@ -10,10 +10,10 @@ import { BaseError } from '../../../core/logic/BaseError';
 import { MongooseError } from '../../../shared/infra/mongoose/errors/MongooseError';
 
 export interface DigitalIdentityRepository extends Repository<DigitalIdentity> {
-  save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError>>;
-  getByUniqueId(uniqueId: DigitalIdentityId): Promise<DigitalIdentity | null>;
-  getByEntityId(entityId: EntityId): Promise<DigitalIdentity[]>;
-  existsInSource(identifier: Mail | DigitalIdentityId, source: Source): Promise<boolean>;
-  exists(identifier: Mail | DigitalIdentityId): Promise<boolean>;
-  delete(id: DigitalIdentityId): Promise<Result<any, BaseError>>;
+    save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError>>;
+    getByUniqueId(uniqueId: DigitalIdentityId): Promise<DigitalIdentity | null>;
+    getByEntityId(entityId: EntityId): Promise<DigitalIdentity[]>;
+    existsInSource(identifier: Mail | DigitalIdentityId, source: Source): Promise<boolean>;
+    exists(identifier: Mail | DigitalIdentityId): Promise<boolean>;
+    delete(id: DigitalIdentityId): Promise<Result<any, BaseError>>;
 }

@@ -12,7 +12,7 @@
 
 //   private constructor(value: string, opts: HierarchyOpts) {
 //     this._separator = opts.separator;
-//     this.h_splitted = value === '' ? [] 
+//     this.h_splitted = value === '' ? []
 //       : value.split(this._separator);
 //   }
 

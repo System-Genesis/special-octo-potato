@@ -1,5 +1,4 @@
-import Joi from "joi";
-
+import Joi from 'joi';
 
 // export type DeleteRoleDTO = {
 //     roleId: string;
@@ -7,4 +6,4 @@ import Joi from "joi";
 
 export const joiSchema = Joi.object({
     roleId: Joi.string().required(),
-  });
+});

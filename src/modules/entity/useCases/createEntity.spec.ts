@@ -1,4 +1,3 @@
-
 // import { DigitalIdentityRepository } from './../../digitalIdentity/repository/DigitalIdentityRepository';
 // import { EntityRepository } from '../repository/EntityRepository';
 // import { EntityService } from './EntityService';
@@ -30,9 +29,9 @@
 //             "serviceType": "hov"
 //         });
 
-//         // console.log('result: ', (result as any).value);                  
-//         expect(mockEntitiesRepo.save).toHaveBeenCalled();       
-          
+//         // console.log('result: ', (result as any).value);
+//         expect(mockEntitiesRepo.save).toHaveBeenCalled();
+
 //       });
 //     });
 //   });

@@ -5,5 +5,5 @@ import { DigitalIdentityId } from './../../digitalIdentity/domain/DigitalIdentit
 
 export interface IConnectedDI {
     uniqueId: DigitalIdentityId;
-    source: Source
+    source: Source;
 }

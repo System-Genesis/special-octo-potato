@@ -1,11 +1,11 @@
 import Joi from 'joi';
 
 export type ConnectDigitalIdentityDTO = {
-  roleId: string;
-  digitalIdentityUniqueId: string;
-}
+    roleId: string;
+    digitalIdentityUniqueId: string;
+};
 
 export const joiSchema = Joi.object({
-  roleId: Joi.string().required(),
-  digitalIdentityUniqueId: Joi.string().required(),
+    roleId: Joi.string().required(),
+    digitalIdentityUniqueId: Joi.string().required(),
 });

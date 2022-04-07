@@ -1,4 +1,3 @@
-
 // import { DigitalIdentityRepository } from './../../digitalIdentity/repository/DigitalIdentityRepository';
 // import 'jest-ts-auto-mock'
 // import { createMock } from 'ts-auto-mock';
@@ -20,9 +19,9 @@
 //             mockDisRepo,
 //         );
 //         let result = await entityService.deleteEntity("123");
-//         // console.log('result: ', (result as any).value);                  
-//         expect(mockEntitiesRepo.delete).toHaveBeenCalled();       
-          
+//         // console.log('result: ', (result as any).value);
+//         expect(mockEntitiesRepo.delete).toHaveBeenCalled();
+
 //       });
 //     });
 //   });
