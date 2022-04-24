@@ -222,7 +222,7 @@ export class EntityService {
         entity.choosePrimaryDigitalIdentity(connectedDIs);
         const saveEntityRes = (await this.entityRepository.save(entity))
             .map((res) => {
-                this.logger.logInfo(logEntity(entity, 'Entity Updated', 'ENTITY_UPDATE', connectDTO), false);
+                this.logger.logInfo(logEntity(entity, 'Entity DI Connected', 'ENTITY_CONNECT', connectDTO), false);
                 return res;
             })
             .mapErr((err) => {
@@ -267,7 +267,7 @@ export class EntityService {
         entity.choosePrimaryDigitalIdentity(connectedDIs);
         const saveEntityRes = (await this.entityRepository.save(entity))
             .map((res) => {
-                this.logger.logInfo(logEntity(entity, 'Entity Updated', 'ENTITY_UPDATE', disconnectDTO), false);
+                this.logger.logInfo(logEntity(entity, 'Entity DI Disconnected', 'ENTITY_DISCONNECT', disconnectDTO), false);
                 return res;
             }) // return DTO
             .mapErr((err) => {
