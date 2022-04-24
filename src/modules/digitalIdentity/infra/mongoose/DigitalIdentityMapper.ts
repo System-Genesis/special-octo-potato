@@ -17,11 +17,9 @@ export class DigitalIdentityMapper {
             isRoleAttachable: digitalIdentity.canConnectRole,
             version: digitalIdentity.version,
             upn: digitalIdentity.upn,
+            entityId: digitalIdentity.connectedEntityId ? Types.ObjectId(digitalIdentity.connectedEntityId.toString()) :  undefined,
             createdAt: digitalIdentity.createdAt,
         };
-        if (digitalIdentity.connectedEntityId) {
-            persistanced.entityId = Types.ObjectId(digitalIdentity.connectedEntityId.toString());
-        }
         return persistanced;
     }
 
