@@ -13,7 +13,7 @@ import { AggregateVersionError } from '../../../../core/infra/AggregateVersionEr
 import { AppError } from '../../../../core/logic/AppError';
 import { BaseError } from '../../../../core/logic/BaseError';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class DigitalIdentityRepository implements IdigitalIdentityRepo {
     private _model: Model<DigitalIdentityDoc>;
@@ -67,7 +67,9 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
     }
 
     async update(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
-        const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
+        const persistanceState = Mapper.toPersistance(digitalIdentity);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
@@ -75,12 +77,12 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
             session.startTransaction();
 
             const updateOp = await this._model
-                .findOneAndReplace(
+                .updateOne(
                     {
                         uniqueId: digitalIdentity.uniqueId.toString(),
                         version: digitalIdentity.fetchedVersion,
                     },
-                    persistanceState,
+                    { $set: persistanceStateSanitized , $unset: fieldsToDelete }
                 )
                 .session(session);
 

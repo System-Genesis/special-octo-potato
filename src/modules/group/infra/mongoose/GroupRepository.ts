@@ -11,7 +11,7 @@ import { AppError } from '../../../../core/logic/AppError';
 import { BaseError } from '../../../../core/logic/BaseError';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
 import { Error as mongooseError } from 'mongoose';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class GroupRepository implements IGroupRepository {
     private _model: Model<GroupDoc>;
@@ -164,19 +164,21 @@ export class GroupRepository implements IGroupRepository {
         return result;
     }
     async update(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
-        const persistanceState = sanitize(Mapper.toPersistance(group));
+        const persistanceState = Mapper.toPersistance(group);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
         try {
             session.startTransaction();
             const updateOp = await this._model
-                .findOneAndReplace(
+                .updateOne(
                     {
                         _id: group.groupId.toString(),
                         version: group.fetchedVersion,
                     },
-                    persistanceState,
+                    { $set: persistanceStateSanitized , $unset: fieldsToDelete }
                 )
                 .session(session);
 
