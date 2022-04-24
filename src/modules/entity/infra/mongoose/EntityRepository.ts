@@ -14,7 +14,7 @@ import { AggregateVersionError } from '../../../../core/infra/AggregateVersionEr
 import { AppError } from '../../../../core/logic/AppError';
 import { BaseError } from '../../../../core/logic/BaseError';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class EntityRepository implements IEntityRepository {
     private _model: Model<EntityDoc>;
@@ -81,7 +81,9 @@ export class EntityRepository implements IEntityRepository {
     }
 
     async update(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
-        const persistanceState = sanitize(Mapper.toPersistance(entity));
+        const persistanceState = Mapper.toPersistance(entity);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
@@ -89,12 +91,12 @@ export class EntityRepository implements IEntityRepository {
             session.startTransaction();
 
             const updateOp = await this._model
-                .findOneAndReplace(
+                .updateOne(
                     {
                         _id: entity.entityId.toString(),
                         version: entity.fetchedVersion,
                     },
-                    persistanceState,
+                    { $set: persistanceStateSanitized , $unset: fieldsToDelete }
                 )
                 .session(session);
 

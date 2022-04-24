@@ -35,6 +35,11 @@ export function extractNullKeys(obj: any): any {
     return nullsObj;
 }
 
+export function extractUndefinedKeys(obj: any): any {
+    const nullsObj = Object.fromEntries(Object.entries(obj).filter(([key, value]) => value === undefined));
+    return nullsObj;
+}
+
 export function deleteProps(obj: any, nullKeys: string[]): any {
     Object.keys(obj).forEach((key) => (nullKeys.includes(key) ? delete obj[key] : {}));
     return obj;
