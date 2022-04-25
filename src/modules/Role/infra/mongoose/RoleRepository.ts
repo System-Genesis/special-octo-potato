@@ -77,7 +77,7 @@ export class RoleRepository implements IRoleRepository {
         return result;
     }
 
-    async update(role: Role): Promise<Result<void, AggregateVersionError>> {
+    async save(role: Role): Promise<Result<void, AggregateVersionError>> {
         const persistanceState = Mapper.toPersistance(role);
         const fieldsToDelete = extractUndefinedKeys(persistanceState);
         const persistanceStateSanitized = sanitize(persistanceState);

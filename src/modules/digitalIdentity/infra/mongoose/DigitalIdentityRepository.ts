@@ -66,7 +66,7 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
         return result;
     }
 
-    async update(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = Mapper.toPersistance(digitalIdentity);
         const fieldsToDelete = extractUndefinedKeys(persistanceState);
         const persistanceStateSanitized = sanitize(persistanceState);

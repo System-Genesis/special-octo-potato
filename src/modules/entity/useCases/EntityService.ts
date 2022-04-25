@@ -207,11 +207,11 @@ export class EntityService {
             return err(AppError.LogicError.create(res.error.message));
         }
 
-        const saveDiRes = (await this.diRepository.update(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveDiRes = (await this.diRepository.save(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (saveDiRes.isErr()) return saveDiRes;
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.update(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveEntityRes;
     }
 
@@ -242,12 +242,12 @@ export class EntityService {
         // disconnect the entityy to the digital identity
         di.disconnectEntity();
         // TODO: do it in a better way already
-        const saveDiRes = (await this.diRepository.update(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveDiRes = (await this.diRepository.save(di)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (saveDiRes.isErr()) return saveDiRes;
 
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.update(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveEntityRes = (await this.entityRepository.save(entity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveEntityRes;
     }
 
@@ -391,7 +391,7 @@ export class EntityService {
             return err(result.error);
         }
         // finally, save the entity
-        return (await this.entityRepository.update(entity))
+        return (await this.entityRepository.save(entity))
             .map(() => entityToDTO(entity)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }

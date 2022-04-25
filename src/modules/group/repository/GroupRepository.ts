@@ -10,7 +10,7 @@ export interface GroupRepository extends Repository<Group> {
     generateGroupId(): GroupId;
     exists(id: GroupId): Promise<boolean>;
     create(group: Group): Promise<Result<void, AggregateVersionError>>;
-    update(group: Group): Promise<Result<void, AggregateVersionError>>;
+    save(group: Group): Promise<Result<void, AggregateVersionError>>;
     getByGroupId(groupId: GroupId): Promise<Group | null>;
     getByNameAndParentId(name: string, parentId: GroupId): Promise<GroupId | null>;
     getRootByName(name: string): Promise<GroupId | null>;

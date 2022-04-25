@@ -163,7 +163,7 @@ export class GroupRepository implements IGroupRepository {
 
         return result;
     }
-    async update(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async save(group: Group): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = Mapper.toPersistance(group);
         const fieldsToDelete = extractUndefinedKeys(persistanceState);
         const persistanceStateSanitized = sanitize(persistanceState);

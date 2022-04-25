@@ -80,7 +80,7 @@ export class EntityRepository implements IEntityRepository {
         return result;
     }
 
-    async update(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = Mapper.toPersistance(entity);
         const fieldsToDelete = extractUndefinedKeys(persistanceState);
         const persistanceStateSanitized = sanitize(persistanceState);
