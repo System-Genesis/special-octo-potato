@@ -91,7 +91,7 @@ export class GroupService {
 
         if (saveGroupRes.isErr()) return saveGroupRes;
         if (parent) {
-            const saveParentRes = (await this.groupRepository.update(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+            const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
             if (saveParentRes.isErr()) return err(AppError.UnexpectedError.create(saveParentRes.error.message));
         }
         // TODO: use saveParentRes or do it in some other way?
@@ -133,7 +133,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.update(group))
+        return (await this.groupRepository.save(group))
             .map(() => groupToDTO(group as Group)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }
@@ -155,7 +155,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.update(group))
+        return (await this.groupRepository.save(group))
             .map(() => groupToDTO(group as Group)) // return DTO
             .mapErr((err) => AppError.RetryableConflictError.create(err.message)); // or Error
     }
@@ -182,7 +182,7 @@ export class GroupService {
         if (result.isErr()) {
             return err(result.error);
         }
-        return (await this.groupRepository.update(group)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.groupRepository.save(group)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     // TODO: update group (rename)
@@ -214,7 +214,7 @@ export class GroupService {
         parent.deleteChild();
         const deleteGroupRes = (await this.groupRepository.delete(groupId)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         if (deleteGroupRes.isErr()) return deleteGroupRes;
-        const saveParentRes = (await this.groupRepository.update(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        const saveParentRes = (await this.groupRepository.save(parent)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return saveParentRes;
     }
 }

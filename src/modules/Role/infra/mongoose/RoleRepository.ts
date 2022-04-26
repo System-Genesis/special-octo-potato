@@ -12,7 +12,7 @@ import { BaseError } from '../../../../core/logic/BaseError';
 import { AppError } from '../../../../core/logic/AppError';
 import { GroupId } from '../../../group/domain/GroupId';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class RoleRepository implements IRoleRepository {
     private _model: Model<RoleDoc>;
@@ -77,8 +77,10 @@ export class RoleRepository implements IRoleRepository {
         return result;
     }
 
-    async update(role: Role): Promise<Result<void, AggregateVersionError>> {
-        const persistanceState = sanitize(Mapper.toPersistance(role));
+    async save(role: Role): Promise<Result<void, AggregateVersionError>> {
+        const persistanceState = Mapper.toPersistance(role);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
 
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
@@ -86,12 +88,12 @@ export class RoleRepository implements IRoleRepository {
         try {
             session.startTransaction();
 
-            const updateOp = await this._model.findOneAndReplace(
+            const updateOp = await this._model.updateOne(
                 {
                     roleId: role.roleId.toString(),
                     version: role.fetchedVersion,
                 },
-                persistanceState,
+                { $set: persistanceStateSanitized , $unset: fieldsToDelete },
                 { session },
             );
 

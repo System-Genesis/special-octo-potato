@@ -90,7 +90,7 @@ export class DigitalIdentityService {
                 digitalIdentity.disableRoleConnectable();
             }
         }
-        return (await this.diRepository.update(digitalIdentity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
+        return (await this.diRepository.save(digitalIdentity)).mapErr((err) => AppError.RetryableConflictError.create(err.message));
     }
 
     async deleteDigitalIdentity(id: string): Promise<Result<void, BaseError>> {
