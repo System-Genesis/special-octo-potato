@@ -54,7 +54,7 @@ export class RoleService {
             jobTitle: createRoleDTO.jobTitle,
             clearance: createRoleDTO.clearance,
         });
-        return (await this.roleRepository.save(role)).mapErr((err) => {
+        return (await this.roleRepository.create(role)).mapErr((err) => {
             return AppError.RetryableConflictError.create(err.message);
         });
     }

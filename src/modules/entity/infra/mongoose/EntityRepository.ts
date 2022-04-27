@@ -14,7 +14,7 @@ import { AggregateVersionError } from '../../../../core/infra/AggregateVersionEr
 import { AppError } from '../../../../core/logic/AppError';
 import { BaseError } from '../../../../core/logic/BaseError';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class EntityRepository implements IEntityRepository {
     private _model: Model<EntityDoc>;
@@ -41,7 +41,10 @@ export class EntityRepository implements IEntityRepository {
         }
         // TODO (D): if use function exists, use exists instead of findOne
         const res = await this._model
-            .findOne({ ...{ [identifierName]: identifier.toString() }, ...(organization && { organization: organization.value }) })
+            .findOne({
+                ...{ [identifierName]: identifier.toString() },
+                ...(organization && { organization: organization.value }),
+            })
             .lean()
             .select('_id');
         return !!res;
@@ -58,35 +61,47 @@ export class EntityRepository implements IEntityRepository {
         return Mapper.toDomain(raw);
     }
 
-    // TODO: seperate into create and update
-    async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async create(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = sanitize(Mapper.toPersistance(entity));
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
         try {
             session.startTransaction();
-            const existingEntity = await this._model.findOne({
-                _id: entity.entityId.toString(),
-            });
-            if (existingEntity) {
-                const updateOp = await this._model
-                    .findOneAndReplace(
-                        {
-                            _id: entity.entityId.toString(),
-                            version: entity.fetchedVersion,
-                        },
-                        // TODO: maintain createAt & updatedAt in domain?
-                        { ...persistanceState, createdAt: existingEntity.createdAt },
-                    )
-                    .session(session);
+            await this._model.create([persistanceState], { session });
+            await session.commitTransaction();
+        } catch (error) {
+            result = err(MongooseError.GenericError.create(error));
 
-                if (!updateOp) {
-                    result = err(AggregateVersionError.create(entity.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
+        }
+        return result;
+    }
+
+    async save(entity: Entity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+        const persistanceState = Mapper.toPersistance(entity);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
+        let result: Result<void, AggregateVersionError> = ok(undefined);
+        let session = await this._model.startSession();
+
+        try {
+            session.startTransaction();
+
+            const updateOp = await this._model
+                .updateOne(
+                    {
+                        _id: entity.entityId.toString(),
+                        version: entity.fetchedVersion,
+                    },
+                    { $set: persistanceStateSanitized , $unset: fieldsToDelete }
+                )
+                .session(session);
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(entity.fetchedVersion));
             }
             await session.commitTransaction();
         } catch (error) {

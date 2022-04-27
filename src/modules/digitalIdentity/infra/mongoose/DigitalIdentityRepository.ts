@@ -13,7 +13,7 @@ import { AggregateVersionError } from '../../../../core/infra/AggregateVersionEr
 import { AppError } from '../../../../core/logic/AppError';
 import { BaseError } from '../../../../core/logic/BaseError';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class DigitalIdentityRepository implements IdigitalIdentityRepo {
     private _model: Model<DigitalIdentityDoc>;
@@ -46,34 +46,50 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
         }
     }
 
-    async save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    async create(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
         const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
         let result: Result<void, AggregateVersionError> = ok(undefined);
         let session = await this._model.startSession();
 
         try {
             session.startTransaction();
-            const existingDI = await this._model.findOne({
-                uniqueId: digitalIdentity.uniqueId.toString(),
-            });
-            if (existingDI) {
-                const updateOp = await this._model
-                    .findOneAndReplace(
-                        {
-                            uniqueId: digitalIdentity.uniqueId.toString(),
-                            version: digitalIdentity.fetchedVersion,
-                        },
-                        { ...persistanceState, createdAt: existingDI.createdAt },
-                    )
-                    .session(session);
 
-                if (!updateOp) {
-                    result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
+            await this._model.create([persistanceState], { session });
+
+            await session.commitTransaction();
+        } catch (error) {
+            result = err(MongooseError.GenericError.create(error));
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
+        }
+        return result;
+    }
+
+    async save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+        const persistanceState = Mapper.toPersistance(digitalIdentity);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
+        let result: Result<void, AggregateVersionError> = ok(undefined);
+        let session = await this._model.startSession();
+
+        try {
+            session.startTransaction();
+
+            const updateOp = await this._model
+                .updateOne(
+                    {
+                        uniqueId: digitalIdentity.uniqueId.toString(),
+                        version: digitalIdentity.fetchedVersion,
+                    },
+                    { $set: persistanceStateSanitized , $unset: fieldsToDelete }
+                )
+                .session(session);
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
             }
+
             await session.commitTransaction();
         } catch (error) {
             result = err(MongooseError.GenericError.create(error));

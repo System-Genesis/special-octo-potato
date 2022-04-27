@@ -10,6 +10,7 @@ import { BaseError } from '../../../core/logic/BaseError';
 import { MongooseError } from '../../../shared/infra/mongoose/errors/MongooseError';
 
 export interface DigitalIdentityRepository extends Repository<DigitalIdentity> {
+    create(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError>>;
     save(digitalIdentity: DigitalIdentity): Promise<Result<void, AggregateVersionError>>;
     getByUniqueId(uniqueId: DigitalIdentityId): Promise<DigitalIdentity | null>;
     getByEntityId(entityId: EntityId): Promise<DigitalIdentity[]>;

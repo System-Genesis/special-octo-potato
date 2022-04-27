@@ -5,6 +5,7 @@ import { BaseError } from '../logic/BaseError';
 import { AggregateVersionError } from './AggregateVersionError';
 
 export interface Repository<T extends AggregateRoot> {
+    create(t: T): Promise<Result<any, AggregateVersionError>>;
     save(t: T): Promise<Result<any, AggregateVersionError>>;
     delete(id: Identifier<any>): Promise<Result<any, BaseError>>;
 }

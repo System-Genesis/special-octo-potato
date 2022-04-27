@@ -41,7 +41,9 @@ describe('POST Entity ', () => {
                 }
                 expect(Object.keys(res.body).length === 1);
                 expect(res.body.id).toBeTruthy();
-                const foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+                const foundEntity = await findOneByQuery('entities', {
+                    personalNumber: '6536548',
+                });
                 expect(foundEntity.firstName).toBe('no');
                 return done();
             });
@@ -50,7 +52,9 @@ describe('POST Entity ', () => {
 
 describe('PATCH entity ', () => {
     it('update exists entity firstName and identityCard', async () => {
-        let foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+        let foundEntity = await findOneByQuery('entities', {
+            personalNumber: '6536548',
+        });
         let updateFields = {
             firstName: 'no2',
             identityCard: '234567899',
@@ -67,7 +71,9 @@ describe('PATCH entity ', () => {
 
                 expect(Object.keys(res.body).length === 1);
                 expect(res.body.id).toBeTruthy();
-                const foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+                const foundEntity = await findOneByQuery('entities', {
+                    personalNumber: '6536548',
+                });
                 expect(foundEntity.firstName).toBe('no2');
                 expect(foundEntity.identityCard).toBe('253658342');
             });
@@ -88,9 +94,13 @@ describe('PUT connections Digital identity, entity  ', () => {
         console.log(di);
     });
     it('connect the DI to the entity', async () => {
-        const foundDI = await findOneByQuery('digitalidentities', { uniqueId: 'uniqueid@sirutim.com' });
+        const foundDI = await findOneByQuery('digitalidentities', {
+            uniqueId: 'uniqueid@sirutim.com',
+        });
         const diUniqueId = foundDI.uniqueId;
-        const foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+        const foundEntity = await findOneByQuery('entities', {
+            personalNumber: '6536548',
+        });
         const entityId = foundEntity._id.toString();
         request(app)
             .put(`/api/entities/${entityId}/digitalIdentity/${diUniqueId}`)
@@ -100,7 +110,9 @@ describe('PUT connections Digital identity, entity  ', () => {
 
                 //     throw done(err);
                 // }
-                const foundDI = await findOneByQuery('digitalidentities', { uniqueId: 'uniqueid@sirutim.com' });
+                const foundDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: 'uniqueid@sirutim.com',
+                });
                 expect(foundDI.entityId.toString()).toBe(entityId);
             });
     });
@@ -108,7 +120,9 @@ describe('PUT connections Digital identity, entity  ', () => {
 
 describe('DELETE entity ', () => {
     it('delete exists entity ', async () => {
-        let foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+        let foundEntity = await findOneByQuery('entities', {
+            personalNumber: '6536548',
+        });
         // console.log(foundEntity._id.toString())
         request(app)
             .delete(`/api/entities/` + foundEntity._id.toString())
@@ -118,7 +132,9 @@ describe('DELETE entity ', () => {
                     throw err;
                 }
 
-                const foundEntity = await findOneByQuery('entities', { personalNumber: '6536548' });
+                const foundEntity = await findOneByQuery('entities', {
+                    personalNumber: '6536548',
+                });
                 expect(foundEntity).toBe(null);
             });
     });

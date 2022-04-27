@@ -9,6 +9,7 @@ import { Role } from '../domain/Role';
 import { RoleId } from '../domain/RoleId';
 
 export interface RoleRepository extends Repository<Role> {
+    create(role: Role): Promise<Result<void, AggregateVersionError>>;
     save(role: Role): Promise<Result<void, AggregateVersionError>>;
     getByRoleId(roleId: RoleId): Promise<Role | null>;
     exists(roleId: RoleId): Promise<boolean>;

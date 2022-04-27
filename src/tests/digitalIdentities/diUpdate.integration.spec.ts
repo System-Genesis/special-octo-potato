@@ -42,8 +42,14 @@ export const testUpdateDI = () => {
                     isRoleAttachable: true,
                     mail: `me@${esDomain}`,
                 };
+                const createdDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: `uniqueid@${esDomain}`,
+                });
+
                 const resUpdate = await request(app).patch(`/api/digitalIdentities/${esDI.uniqueId}`).send(updateData).expect(200);
-                const foundDI = await findOneByQuery('digitalidentities', { uniqueId: `uniqueid@${esDomain}` });
+                const foundDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: `uniqueid@${esDomain}`,
+                });
                 expect(foundDI).toEqual(
                     expect.objectContaining({
                         type: 'domainUser',
@@ -51,6 +57,7 @@ export const testUpdateDI = () => {
                         mail: `me@${esDomain}`,
                         uniqueId: `uniqueid@${esDomain}`,
                         isRoleAttachable: true,
+                        createdAt: createdDI.createdAt,
                     }),
                 );
             });
@@ -62,7 +69,9 @@ export const testUpdateDI = () => {
                     mail: `me@${esDomain}`,
                 };
                 const resUpdate = await request(app).patch(`/api/digitalIdentities/${esDI.uniqueId}`).send(updateData).expect(200);
-                const foundDI = await findOneByQuery('digitalidentities', { uniqueId: `${esDI.uniqueId.toLowerCase()}` });
+                const foundDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: `${esDI.uniqueId.toLowerCase()}`,
+                });
                 expect(foundDI).toEqual(
                     expect.objectContaining({
                         type: 'domainUser',
@@ -88,14 +97,18 @@ export const testUpdateDI = () => {
             it('Should delete digitalIdentity ', async () => {
                 const resCreate = await request(app).post(`/api/digitalIdentities`).send(esDI).expect(200);
                 const resDelete = await request(app).delete(`/api/digitalIdentities/${esDI.uniqueId}`).send().expect(200);
-                const foundDI = await findOneByQuery('digitalidentities', { uniqueId: `${esDI.uniqueId.toLowerCase()}` });
+                const foundDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: `${esDI.uniqueId.toLowerCase()}`,
+                });
                 expect(foundDI).toBe(null);
             });
 
             it('Shouldnt delete a digitalIdentity connected to entity', async () => {
                 const resCreate = await request(app).post(`/api/digitalIdentities`).send(esDI).expect(200);
                 const resDelete = await request(app).delete(`/api/digitalIdentities/${esDI.uniqueId}`).send().expect(200);
-                const foundDI = await findOneByQuery('digitalidentities', { uniqueId: `${esDI.uniqueId.toLowerCase()}` });
+                const foundDI = await findOneByQuery('digitalidentities', {
+                    uniqueId: `${esDI.uniqueId.toLowerCase()}`,
+                });
                 expect(foundDI).toBe(null);
             });
         });

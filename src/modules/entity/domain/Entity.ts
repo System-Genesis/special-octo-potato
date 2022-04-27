@@ -144,6 +144,8 @@ type EntityState = {
     goalUserId?: DigitalIdentityId;
     primaryDigitalIdentityId?: DigitalIdentityId;
     pictures?: Pictures;
+    updatedAt?: Date;
+    createdAt?: Date;
 };
 
 type CreateEntityProps = Omit<EntityState, 'mail' | 'primaryDigitalIdentity'>;
@@ -273,7 +275,7 @@ export class Entity extends AggregateRoot {
         const newStateWithoutNulls = deleteNullProps(newStateWithNulls);
         const isValid = Entity.isValidEntityState(newStateWithoutNulls);
         if (isValid.isOk()) {
-            this._state = newStateWithoutNulls as EntityState;
+            this._state = newStateWithoutNulls;
         }
         this.markModified();
         return isValid;
@@ -499,6 +501,10 @@ export class Entity extends AggregateRoot {
 
     get pictures() {
         return this._state.pictures;
+    }
+
+    get createdAt() {
+        return this._state.createdAt;
     }
 
     // get hierarchy() {

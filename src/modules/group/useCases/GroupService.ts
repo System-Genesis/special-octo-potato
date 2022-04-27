@@ -55,7 +55,11 @@ export class GroupService {
             if (group.isErr()) {
                 const childGroupId = await this.groupRepository.getByNameAndParentId(createDTO.name, parentId);
                 if (childGroupId) {
-                    return err(AppError.AlreadyExistsError.create('group', { id: childGroupId.toString() }));
+                    return err(
+                        AppError.AlreadyExistsError.create('group', {
+                            id: childGroupId.toString(),
+                        }),
+                    );
                 } else {
                     return err(AppError.UnexpectedError.create());
                 }
@@ -79,7 +83,7 @@ export class GroupService {
             );
         }
 
-        const saveGroupRes = (await this.groupRepository.save(group.value))
+        const saveGroupRes = (await this.groupRepository.create(group.value))
             .map(() => groupToDTO(group._unsafeUnwrap())) // TODO why the fuck TS doesn't recognize the correct type
             .mapErr((err) => {
                 return AppError.RetryableConflictError.create(err.message);

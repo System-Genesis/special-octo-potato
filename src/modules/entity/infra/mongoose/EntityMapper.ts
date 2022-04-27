@@ -41,6 +41,7 @@ export class EntityMapper {
             primaryDigitalIdentityId: entity.primaryDigitalIdentityId?.toString(),
             version: entity.version,
             pictures: entity.pictures,
+            createdAt: entity.createdAt,
         };
     }
 
@@ -80,6 +81,7 @@ export class EntityMapper {
                               ...raw.pictures,
                           }
                         : undefined,
+                    createdAt: raw.createdAt,
                 },
                 { isNew: false, savedVersion: raw.version },
             )._unsafeUnwrap();

@@ -36,6 +36,7 @@ export interface DigitalIdentityState {
     entityId?: EntityId;
     canConnectRole?: boolean;
     upn?: string;
+    createdAt?: Date;
 }
 
 export interface DigitalIdentityRepresent {
@@ -50,6 +51,7 @@ export class DigitalIdentity extends AggregateRoot {
     private _canConnectRole: boolean;
     private _entityId?: EntityId;
     private _upn?: string;
+    private _createdAt?: Date;
 
     private constructor(id: DigitalIdentityId, props: DigitalIdentityState, opts: CreateOpts) {
         super(id, opts);
@@ -57,6 +59,7 @@ export class DigitalIdentity extends AggregateRoot {
         this._source = props.source;
         this._mail = props.mail;
         this._entityId = props.entityId;
+        this._createdAt = props.createdAt;
         this._canConnectRole =
             props.canConnectRole !== undefined
                 ? // if given in props - use it
@@ -155,6 +158,10 @@ export class DigitalIdentity extends AggregateRoot {
 
     get upn() {
         return this._upn;
+    }
+
+    get createdAt() {
+        return this._createdAt;
     }
 
     get connectedDigitalIdentity(): DigitalIdentityRepresent {

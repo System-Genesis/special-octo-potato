@@ -31,6 +31,7 @@ interface GroupState {
     diPrefix?: string;
     isLeaf?: boolean;
     childrenNames?: Set<string>;
+    createdAt?: Date;
 }
 
 type UpdateDto = Partial<Omit<GroupState, 'childrenNames' | 'ancestors' | 'source'>>;
@@ -45,6 +46,7 @@ export class Group extends AggregateRoot implements IGroup {
     private _source: Source;
     private _diPrefix?: string;
     private _childrenNames: Set<string>;
+    private _createdAt?: Date;
 
     private constructor(id: GroupId, state: GroupState, opts: CreateOpts) {
         super(id, opts);
@@ -57,6 +59,7 @@ export class Group extends AggregateRoot implements IGroup {
         // this._hierarchy = state.hierarchy || Hierarchy.create('');
         this._ancestors = state.ancestors || [];
         this._childrenNames = state.childrenNames || new Set();
+        this._createdAt = state.createdAt;
     }
     public updateDetails(updateDto: UpdateDto): UpdateResult {
         if (has(updateDto, 'name')) {
@@ -130,6 +133,10 @@ export class Group extends AggregateRoot implements IGroup {
     }
     get diPrefix() {
         return this._diPrefix;
+    }
+
+    get createdAt() {
+        return this._createdAt;
     }
 
     public createChild(groupId: GroupId, props: CreateGroupProps): Result<Group, DuplicateChildrenError> {

@@ -182,7 +182,7 @@ export class EntityService {
             return err(entityOrError.error);
         }
         this.logger.logInfo(logEntity(entityOrError.value, 'entity created', 'ENTITY_CREATED'), false);
-        let val = (await this.entityRepository.save(entityOrError.value))
+        let val = (await this.entityRepository.create(entityOrError.value))
             .map(() => entityToDTO(entityOrError.value))
             .mapErr((err) => AppError.RetryableConflictError.create(err.message));
         return val;
@@ -220,7 +220,7 @@ export class EntityService {
         if (saveDiRes.isErr()) return saveDiRes;
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.save(entity))
+        const saveEntityRes = (await this.entityRepository.create(entity))
             .map((res) => {
                 this.logger.logInfo(logEntity(entity, 'Entity DI Connected', 'ENTITY_CONNECT', connectDTO), false);
                 return res;

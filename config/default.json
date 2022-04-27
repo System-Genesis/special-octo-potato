@@ -1,32 +1,77 @@
 {
   "valueObjects": {
     "source": {
-      "values": ["oa_name", "es_name", "sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"],
-      "strongSources": ["oa_name"],
+      "values": [
+        "oa_name",
+        "es_name",
+        "sf_name",
+        "aka",
+        "adNN_name",
+        "city_name",
+        "mir_name",
+        "ads_name"
+      ],
+      "strongSources": [
+        "oa_name"
+      ],
       "upnSource": "ads_name",
-      "weakSources": ["mir_name"],
+      "weakSources": [
+        "mir_name"
+      ],
       "primaryMap": {
         "sf1": "sf_name",
         "es1": "es_name"
       }
     },
     "rank": {
-      "values": ["unknown", "rookie", "champion", "ultimate"]
+      "values": [
+        "unknown",
+        "rookie",
+        "champion",
+        "ultimate"
+      ]
     },
     "organizations": {
-      "values": ["org1", "org2"]
+      "values": [
+        "org1",
+        "org2"
+      ]
     },
     "serviceType": {
-      "values": ["A", "B", "C", "D", "E", "F", "G"]
+      "values": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
     },
     "digitalIdentityId": {
       "domain": {
-        "values": ["rabiran.com", "jello.com", "adnn.com", "leonardo.com", "city.com", "turtle.com", "rafael.turtle.com"]
+        "values": [
+          "rabiran.com",
+          "jello.com",
+          "adnn.com",
+          "leonardo.com",
+          "city.com",
+          "turtle.com",
+          "rafael.turtle.com"
+        ]
       }
     },
     "roleIdSuffixes": {
       "domain": {
-        "values": ["rabiran", "jello", "adnn", "leonardo", "city", "turtle", "rafael.turtle.com"]
+        "values": [
+          "rabiran",
+          "jello",
+          "adnn",
+          "leonardo",
+          "city",
+          "turtle",
+          "rafael.turtle.com"
+        ]
       }
     },
     "EntityType": {
@@ -46,7 +91,7 @@
   },
   "db": {
     "mongo": {
-      "connectionString": "mongodb://nitro:password123@localhost:27017/kartoffelMock?replicaSet=rs0&directConnection=true&ssl=false",
+      "connectionString": "mongodb://localhost:27017",
       "poolSize": 10,
       "modelNames": {
         "group": "Group",

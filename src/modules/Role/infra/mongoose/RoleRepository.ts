@@ -12,7 +12,7 @@ import { BaseError } from '../../../../core/logic/BaseError';
 import { AppError } from '../../../../core/logic/AppError';
 import { GroupId } from '../../../group/domain/GroupId';
 import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
-import { sanitize } from '../../../../utils/ObjectUtils';
+import { extractUndefinedKeys, sanitize } from '../../../../utils/ObjectUtils';
 
 export class RoleRepository implements IRoleRepository {
     private _model: Model<RoleDoc>;
@@ -55,7 +55,7 @@ export class RoleRepository implements IRoleRepository {
         return Mapper.toDomain(raw);
     }
 
-    async save(role: Role): Promise<Result<void, AggregateVersionError>> {
+    async create(role: Role): Promise<Result<void, AggregateVersionError>> {
         const persistanceState = sanitize(Mapper.toPersistance(role));
 
         let result: Result<void, AggregateVersionError> = ok(undefined);
@@ -64,24 +64,41 @@ export class RoleRepository implements IRoleRepository {
         try {
             session.startTransaction();
 
-            const existingRole = await this._model.findOne({ roleId: role.roleId.toString() });
+            await this._model.create([persistanceState], { session });
+            await session.commitTransaction();
+        } catch (error) {
+            result = err(MongooseError.GenericError.create(error));
 
-            if (existingRole) {
-                const updateOp = await this._model.findOneAndReplace(
-                    {
-                        roleId: role.roleId.toString(),
-                        version: role.fetchedVersion,
-                    },
-                    { ...persistanceState, createdAt: existingRole.createdAt },
-                    { session },
-                );
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
+        }
 
-                if (!updateOp) {
-                    result = err(AggregateVersionError.create(role.fetchedVersion));
-                }
-            } else {
-                await this._model.create([persistanceState], { session });
-                result = ok(undefined);
+        return result;
+    }
+
+    async save(role: Role): Promise<Result<void, AggregateVersionError>> {
+        const persistanceState = Mapper.toPersistance(role);
+        const fieldsToDelete = extractUndefinedKeys(persistanceState);
+        const persistanceStateSanitized = sanitize(persistanceState);
+
+        let result: Result<void, AggregateVersionError> = ok(undefined);
+        let session = await this._model.startSession();
+
+        try {
+            session.startTransaction();
+
+            const updateOp = await this._model.updateOne(
+                {
+                    roleId: role.roleId.toString(),
+                    version: role.fetchedVersion,
+                },
+                { $set: persistanceStateSanitized , $unset: fieldsToDelete },
+                { session },
+            );
+
+            if (!updateOp) {
+                result = err(AggregateVersionError.create(role.fetchedVersion));
             }
 
             await session.commitTransaction();
