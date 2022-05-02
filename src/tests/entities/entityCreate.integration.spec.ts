@@ -42,6 +42,25 @@ export const testCreateEntity = () => {
             };
             let entityId;
             it('create a VALID civilian entity', async () => {
+                const civEntity2 = { ...civEntity };
+                civEntity2.identityCard = '039341136';
+                const res = await request(app).post(`/api/entities`).send(civEntity2).expect(200);
+                expect(Object.keys(res.body).length === 1);
+                expect(res.body.id).toBeTruthy();
+                entityId = Types.ObjectId(res.body.id);
+                const foundEntity = await findOneByQuery('entities', {
+                    _id: entityId,
+                });
+                expect(foundEntity).toEqual(
+                    expect.objectContaining({
+                        firstName: 'Tommy',
+                        lastName: 'Afek',
+                        entityType: entityTypes.Civilian,
+                        identityCard: '39341136',
+                    }),
+                );
+            });
+            it('create a VALID civilian entity', async () => {
                 const res = await request(app).post(`/api/entities`).send(civEntity).expect(200);
                 expect(Object.keys(res.body).length === 1);
                 expect(res.body.id).toBeTruthy();

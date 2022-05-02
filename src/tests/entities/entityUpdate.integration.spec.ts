@@ -138,7 +138,7 @@ export const testUpdateEntity = () => {
                 expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy();
             });
 
-            it.only('update a trimmed identityCard soldier entity', async () => {
+            it('update a trimmed identityCard soldier entity', async () => {
                 const res = await request(app).post(`/api/entities`).send(soldEntity).expect(200);
                 expect(Object.keys(res.body).length === 1);
                 expect(res.body.id).toBeTruthy();
