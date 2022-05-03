@@ -220,7 +220,7 @@ export class EntityService {
         if (saveDiRes.isErr()) return saveDiRes;
         const connectedDIs = (await this.diRepository.getByEntityId(entityId)).map((di) => di.connectedDigitalIdentity);
         entity.choosePrimaryDigitalIdentity(connectedDIs);
-        const saveEntityRes = (await this.entityRepository.create(entity))
+        const saveEntityRes = (await this.entityRepository.save(entity))
             .map((res) => {
                 this.logger.logInfo(logEntity(entity, 'Entity DI Connected', 'ENTITY_CONNECT', connectDTO), false);
                 return res;
