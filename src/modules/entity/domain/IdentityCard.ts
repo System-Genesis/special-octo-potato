@@ -1,12 +1,12 @@
-import { trimLeadingZeros } from './../../../utils/stringUtils';
+import { padString } from './../../../utils/stringUtils';
 import { Result, err, ok } from 'neverthrow';
 import { Identifier } from '../../../core/domain/Identifier';
 
 export class IdentityCard extends Identifier<string> {
 
     constructor(identityCard: string) {
-        const trimmedIdentityCard = trimLeadingZeros(identityCard);
-        super(trimmedIdentityCard);
+        const paddedIdentityCard = padString(identityCard);
+        super(paddedIdentityCard);
     }
 
     private static isValid(identityCard: string) {

@@ -138,7 +138,7 @@ export const testUpdateEntity = () => {
                 expect(Date.parse(beforeCreatedAt) === Date.parse(afterCreatedAt)).toBeTruthy();
             });
 
-            it('update a trimmed identityCard soldier entity', async () => {
+            it('update a padded identityCard soldier entity', async () => {
                 const res = await request(app).post(`/api/entities`).send(soldEntity).expect(200);
                 expect(Object.keys(res.body).length === 1);
                 expect(res.body.id).toBeTruthy();
@@ -148,7 +148,7 @@ export const testUpdateEntity = () => {
                 });
                 const beforeCreatedAt = foundEntity.createdAt;
                 const updateData = {
-                    identityCard: '039341136',
+                    identityCard: '39341136',
                 };
                 const resUpdate = await request(app).patch(`/api/entities/${entityId}`).send(updateData);
                 foundEntity = await findOneByQuery('entities', {
@@ -159,7 +159,7 @@ export const testUpdateEntity = () => {
                     expect.objectContaining({
                         firstName: 'Tommy',
                         lastName: 'Afek',
-                        identityCard: '39341136',
+                        identityCard: '039341136',
                         entityType: entityTypes.Soldier,
                         personalNumber: '123456',
                         phone: ['098651414'],
