@@ -153,6 +153,7 @@ export class EntityService {
             lastName: createEntityDTO.lastName,
             dischargeDay: createEntityDTO.dischargeDay,
             clearance: createEntityDTO.clearance,
+            externalClearance: createEntityDTO.externalClearance,
             birthDate: createEntityDTO.birthDate,
             address: createEntityDTO.address,
             akaUnit: createEntityDTO.akaUnit,

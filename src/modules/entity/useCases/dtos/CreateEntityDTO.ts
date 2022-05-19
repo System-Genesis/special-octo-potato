@@ -12,6 +12,7 @@ export type CreateEntityDTO = {
     rank?: string;
     akaUnit?: string;
     clearance?: string;
+    externalClearance?: string;
     sex?: string;
     serviceType?: string;
     dischargeDay?: Date;
@@ -35,6 +36,7 @@ export const joiSchema = Joi.object({
     rank: Joi.string(),
     akaUnit: Joi.string(),
     clearance: Joi.string().trim().regex(/^\d+$/).max(3),
+    externalClearance: Joi.string().trim().regex(/^\d+$/).max(3), // TODO: what valid?
     sex: Joi.string(),
     serviceType: Joi.string(),
     address: Joi.string(),

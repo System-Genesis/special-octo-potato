@@ -132,6 +132,7 @@ type EntityState = {
     akaUnit?: string;
     organization?: Organization;
     clearance?: string; // value object
+    externalClearance?: string; // value object
     mail?: Mail;
     sex?: string;
     serviceType?: ServiceType;
@@ -200,11 +201,11 @@ const ENTITY_TYPE_VALID_STATE: {
     },
     GoalUser: {
         required: ['firstName', 'goalUserId'],
-        forbidden: ['identityCard', 'employeeNumber', 'rank', 'serviceType', 'sex', 'address', 'dischargeDay', 'birthDate'],
+        forbidden: ['identityCard', 'employeeNumber', 'rank', 'serviceType', 'sex', 'address', 'dischargeDay', 'birthDate', 'externalClearance'],
     },
     External: {
         required: ['firstName', 'employeeNumber', 'organization'],
-        forbidden: ['identityCard', 'personalNumber'],
+        forbidden: ['identityCard', 'personalNumber', 'externalClearance'],
     },
 };
 
@@ -461,6 +462,9 @@ export class Entity extends AggregateRoot {
     }
     get clearance() {
         return this._state.clearance;
+    }
+    get externalClearance() {
+        return this._state.externalClearance;
     }
     get sex() {
         return this._state.sex;

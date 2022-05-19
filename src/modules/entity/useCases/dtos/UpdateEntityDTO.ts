@@ -11,6 +11,7 @@ export type UpdateEntityDTO = { entityId: string } & Partial<{
     rank: string | null;
     akaUnit: string | null;
     clearance: string | null;
+    externalClearance: string | null;
     sex: string | null;
     serviceType: string | null;
     dischargeDay: Date | null;
@@ -32,6 +33,7 @@ export const joiSchema = Joi.object({
     rank: Joi.string().allow(null),
     akaUnit: Joi.string().allow(null),
     clearance: Joi.string().trim().regex(/^\d+$/).max(3).allow(null),
+    externalClearance: Joi.string().trim().regex(/^\d+$/).max(3), // TODO: what valid?
     sex: Joi.string().allow(null),
     serviceType: Joi.string().allow(null),
     address: Joi.string().allow(null),
