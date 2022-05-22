@@ -33,7 +33,7 @@ export const joiSchema = Joi.object({
     rank: Joi.string().allow(null),
     akaUnit: Joi.string().allow(null),
     clearance: Joi.string().trim().regex(/^\d+$/).max(3).allow(null),
-    externalClearance: Joi.string().trim().regex(/^\d+$/).max(3), // TODO: what valid?
+    externalClearance: Joi.string().trim().regex(/^\d+$/).max(3).allow(null), // TODO: what valid?
     sex: Joi.string().allow(null),
     serviceType: Joi.string().allow(null),
     address: Joi.string().allow(null),
