@@ -1,28 +1,52 @@
 {
   "valueObjects": {
     "source": {
-      "values": ["OA","AD","ES","MM"],
-      "strongSources": ["OA"],
+      "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"], 
+      "strongSources": ["oa_name"],
+      "upnSource": "ads_name",
+      "weakSources": ["mir_name"],
       "primaryMap": {
-        "unit1": "AD",
-        "unit2": "ES"
+        "sf1": "sf_name",
+        "es1": "es_name"
       }
     },
     "rank": {
-      "values": ["rookie", "champion", "ultimate"]
+      "values": ["unknown", "rookie", "champion", "ultimate"]
+    },
+    "organizations": {
+      "values": ["org1", "org2"]
     },
     "serviceType": {
-      "values": ["hov", "kev"]
+      "values": ["A", "B", "C", "D", "E", "F", "G"]
     },
     "digitalIdentityId": {
       "domain": {
-        "values": ["mm", "sirutim.com"]
+        "values": ["rabiran.com", "jello.com", "adnn.com", "leonardo.com", "city.com", "turtle.com", "rafael.turtle.com"]
       }
+    },
+    "roleIdSuffixes": {
+      "domain": {
+        "values": ["rabiran", "jello", "adnn", "leonardo", "city", "turtle", "rafael.turtle.com"]
+      }
+    },
+    "EntityType": {
+      "Soldier" : "agumon",
+      "Civilian" : "digimon",
+      "GoalUser" : "tamar",
+      "External": "external"
+    },
+    "Sex": {
+      "Male" : "male",
+      "Female" : "female"
+    },
+    "digitalIdentityType": {
+      "DomainUser" : "domainUser",
+      "VirtualUser" : "virtualUser" 
     }
   },
   "db": {
     "mongo": {
-      "connectionString": "mongodb://localhost:27017",
+      "connectionString": "mongodb://nitro:password123@localhost:27017/kartoffelMock?replicaSet=rs0&directConnection=true&ssl=false",
       "poolSize": 10,
       "modelNames": {
         "group": "Group",
@@ -34,7 +58,6 @@
     }
   },
   "server": {
-    "port": 3000
+    "port": 4000
   }
-
 }

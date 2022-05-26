@@ -16,6 +16,8 @@ const schema = new Schema<RoleDoc, Model<RoleDoc>, RoleDoc> ({
   roleId: { type: String, unique: true, required: true },
   digitalIdentityUniqueId: { 
     type: String, 
+    unique: true,
+    sparse: true,
     ref: () => 'DigitalIdentity', // TODO: model names provider?
   }, 
   source: String,
@@ -27,5 +29,8 @@ const schema = new Schema<RoleDoc, Model<RoleDoc>, RoleDoc> ({
   versionKey: false,
   timestamps: true,
 });
+
+// schema.index({ source: 1 })
+// schema.index({ directGroup: 1 })
 
 export default schema;

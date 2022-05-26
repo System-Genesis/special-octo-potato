@@ -1,69 +1,136 @@
-import { Connection, Model } from "mongoose";
+import { Source } from './../../domain/Source';
+import { Connection, Model } from 'mongoose';
 import { DigitalIdentityRepository as IdigitalIdentityRepo } from '../../repository/DigitalIdentityRepository';
 import { default as DigitalIdentitySchema, DigitalIdentityDoc } from './DigitalIdentitySchema';
 import { DigitalIdentity } from '../../domain/DigitalIdentity';
 import { DigitalIdentityMapper as Mapper } from './DigitalIdentityMapper';
 import { DigitalIdentityId } from '../../domain/DigitalIdentityId';
-import { EntityId } from "../../../entity/domain/EntityId";
-import { EventOutbox } from "../../../../shared/infra/mongoose/eventOutbox/Outbox";
-import { Mail } from "../../domain/Mail";
-import { err, ok, Result } from "neverthrow";
-import { AggregateVersionError } from "../../../../core/infra/AggregateVersionError";
+import { EntityId } from '../../../entity/domain/EntityId';
+import { EventOutbox } from '../../../../shared/infra/mongoose/eventOutbox/Outbox';
+import { Mail } from '../../domain/Mail';
+import { err, ok, Result } from 'neverthrow';
+import { AggregateVersionError } from '../../../../core/infra/AggregateVersionError';
+import { AppError } from '../../../../core/logic/AppError';
+import { BaseError } from '../../../../core/logic/BaseError';
+import { MongooseError } from '../../../../shared/infra/mongoose/errors/MongooseError';
+import { sanitize } from '../../../../utils/ObjectUtils';
 
 export class DigitalIdentityRepository implements IdigitalIdentityRepo {
   private _model: Model<DigitalIdentityDoc>;
-  private _eventOutbox: EventOutbox;
 
-  constructor (db: Connection, eventOutbox: EventOutbox, config: { modelName: string }) {
+  constructor(db: Connection, eventOutbox: EventOutbox, config: { modelName: string }) {
     const { modelName } = config;
-    if(db.modelNames().includes(modelName)) {
+    if (db.modelNames().includes(modelName)) {
       this._model = db.model(modelName);
     } else {
       this._model = db.model(modelName, DigitalIdentitySchema);
     }
-    this._eventOutbox = eventOutbox;    
+  }
+
+  async existsInSource(identifier: Mail | DigitalIdentityId, source: Source) {
+    // TODO: perhaps not needed?
+    if (identifier instanceof Mail) {
+      return !!(await this._model.findOne({ mail: identifier.value, source: source.value }).lean());
+    } else {
+      // is DigitalIdentityId
+      return !!(await this._model.findOne({ uniqueId: identifier.toString(), source: source.value }).lean());
+    }
   }
 
   async exists(identifier: Mail | DigitalIdentityId) {
-    if(identifier instanceof Mail) {
+    if (identifier instanceof Mail) {
       return !!(await this._model.findOne({ mail: identifier.value }).lean());
-    } else { // is DigitalIdentityId
+    } else {
+      // is DigitalIdentityId
       return !!(await this._model.findOne({ uniqueId: identifier.toString() }).lean());
     }
   }
-  
-  async save(digitalIdentity: DigitalIdentity): Promise<Result<
-    void, 
-    AggregateVersionError>
-  > {
-    const persistanceState = Mapper.toPersistance(digitalIdentity);
-    const session = await this._model.startSession();
+
+  async save(
+    digitalIdentity: DigitalIdentity
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
     let result: Result<void, AggregateVersionError> = ok(undefined);
-    await session.withTransaction(async () => {
-      if(!!await this._model
-        .findOne({ uniqueId: digitalIdentity.uniqueId.toString()}, { session })) {
-          const updateOp = await this._model.updateOne({ 
-              uniqueId: digitalIdentity.uniqueId.toString(), 
+    let session = await this._model.startSession();
+
+    try {
+      session.startTransaction();
+      const existingDI = await this._model.findOne({
+        uniqueId: digitalIdentity.uniqueId.toString(),
+      });
+      if (existingDI) {
+        const updateOp = await this._model
+          .updateOne(
+            {
+              uniqueId: digitalIdentity.uniqueId.toString(),
               version: digitalIdentity.fetchedVersion,
             },
             persistanceState
-          ).session(session);
-        if(updateOp.n === 0) {
-          result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion))
+          )
+          .session(session);
+
+        if (updateOp.n === 0) {
+          result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
         }
       } else {
         await this._model.create([persistanceState], { session });
         result = ok(undefined);
       }
-      await this._eventOutbox.put(digitalIdentity.domainEvents, session);
-    });
-    session.endSession();
+      await session.commitTransaction();
+    } catch (error) {
+      result = err(MongooseError.GenericError.create(error));
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
+    return result;
+  }
+
+  // TODO: to good to be true need refactor
+  async removeFields(
+    digitalIdentity: DigitalIdentity,
+    fieldsToRemove: string[]
+  ): Promise<Result<void, AggregateVersionError | MongooseError.GenericError>> {
+    const persistanceState = sanitize(Mapper.toPersistance(digitalIdentity));
+    let result: Result<void, AggregateVersionError> = ok(undefined);
+    let session = await this._model.startSession();
+    const fieldsQuery = Object.fromEntries(fieldsToRemove.map((field) => [field, 1]));
+    try {
+      session.startTransaction();
+      const existingDI = await this._model.findOne({
+        uniqueId: digitalIdentity.uniqueId.toString(),
+      });
+      if (existingDI) {
+        const updateOp = await this._model
+          .updateOne(
+            {
+              uniqueId: digitalIdentity.uniqueId.toString(),
+              version: digitalIdentity.fetchedVersion,
+            },
+            { $unset: fieldsQuery }
+          )
+          .session(session);
+
+        if (updateOp.n === 0) {
+          result = err(AggregateVersionError.create(digitalIdentity.fetchedVersion));
+        }
+      } else {
+        await this._model.create([persistanceState], { session });
+        result = ok(undefined);
+      }
+      await session.commitTransaction();
+    } catch (error) {
+      result = err(MongooseError.GenericError.create(error));
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
     return result;
   }
 
   async getByUniqueId(uniqueId: DigitalIdentityId) {
     const raw = await this._model.findOne({ uniqueId: uniqueId.toString() }).lean();
-    if(!raw) return null;
+    if (!raw) return null;
     return Mapper.toDomain(raw);
   }
 
@@ -71,5 +138,11 @@ export class DigitalIdentityRepository implements IdigitalIdentityRepo {
     const raw = await this._model.find({ entityId: entityId.toString() }).lean();
     return raw.map(Mapper.toDomain);
   }
-
+  async delete(uniqueId: DigitalIdentityId): Promise<Result<any, BaseError>> {
+    const res = await this._model.deleteOne({ uniqueId: uniqueId.toValue() });
+    if (!res) {
+      return err(AppError.LogicError.create(`${res}`));
+    }
+    return ok(undefined);
+  }
 }

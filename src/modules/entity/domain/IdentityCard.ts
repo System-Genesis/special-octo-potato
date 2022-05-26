@@ -5,7 +5,7 @@ export class IdentityCard extends Identifier<string>{
 
   private static isValid(identityCard: string) {
     // Validate correct input
-    if (!identityCard.match(/^\d{5,9}$/g)) return false;
+    if (!identityCard.match(/^\d{5,9}$/)) return false;
 
     // The number is too short - add leading zeros
     identityCard = identityCard.padStart(9,'0');

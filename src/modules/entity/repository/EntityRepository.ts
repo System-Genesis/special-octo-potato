@@ -1,3 +1,4 @@
+import { Organization } from './../domain/Organization';
 import { Repository } from "../../../core/infra/Repository";
 import { Entity } from "../domain/Entity";
 import { EntityId } from "../domain/EntityId";
@@ -6,6 +7,7 @@ import { PersonalNumber } from "../domain/PersonalNumber";
 import { DigitalIdentityId } from "../../digitalIdentity/domain/DigitalIdentityId";
 import { Result } from "neverthrow";
 import { AggregateVersionError } from "../../../core/infra/AggregateVersionError";
+import { BaseError } from "../../../core/logic/BaseError";
 
 export type IhaveEntityIdentifiers = Partial<{
   identityCard: IdentityCard;
@@ -22,5 +24,6 @@ export interface EntityRepository extends Repository<Entity> {
   save(entity: Entity): Promise<Result<void, AggregateVersionError>>;
   getByEntityId(enityId: EntityId): Promise<Entity | null>;
   generateEntityId(): EntityId;
-  exists(identifier: EntityIdentifier): Promise<boolean>;
+  exists(identifier: EntityIdentifier, organization?: Organization): Promise<boolean>;
+  delete(id: EntityId): Promise<Result<any,BaseError>>;
 }

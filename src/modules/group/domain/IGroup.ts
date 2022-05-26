@@ -9,5 +9,6 @@ export interface IGroup {
   ancestors: GroupId[];
   groupId: GroupId;
   status?: string;
+  diPrefix?: string;
   isLeaf: boolean;
 }

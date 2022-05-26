@@ -14,3 +14,8 @@ export function hasAll<T extends {}, K extends keyof T>(obj: T, keys: K[]): obj 
   }
   return true;
 }
+
+export function sanitize(obj: any): any {
+  Object.keys(obj).forEach(key => obj[key] === undefined ? delete obj[key] : {});
+  return obj;
+}

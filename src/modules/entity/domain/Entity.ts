@@ -1,3 +1,10 @@
+import { Organization } from './Organization';
+import { EmployeeNumber } from './EmployeeNumber';
+import { isFromArray } from './../../../utils/isSomeValues';
+import config from 'config';
+import { DigitalIdentityRepresent } from "./../../digitalIdentity/domain/DigitalIdentity";
+import { PrimaryDigitalIdentityService } from "./PrimaryDigitalIdentityService";
+import { IConnectedDI } from "./ConnectedDI";
 import { AggregateRoot, CreateOpts } from "../../../core/domain/AggregateRoot";
 import { EntityId } from "./EntityId";
 import { has, hasAll } from "../../../utils/ObjectUtils";
@@ -14,34 +21,52 @@ import { Phone, MobilePhone } from "./phone";
 import { UniqueArray } from "../../../utils/UniqueArray";
 import { ServiceType } from "./ServiceType";
 import { isSomeEnum } from "../../../utils/isSomeEnum";
+import { DigitalIdentityState } from "../../digitalIdentity/domain/DigitalIdentity";
 
-export enum EntityType {
-  Soldier = 'soldier',
-  Civilian = 'civilian',
-  GoalUser = 'goalUser'
+export type sexType = {
+  Male: string,
+  Female: string,
 }
-const isEntityType = isSomeEnum(EntityType);
-export const castToEntityType = (val: string): Result<EntityType, string> => {
-  if(isEntityType(val)) { return ok(val); }
+
+export const sexTypes: sexType = config.get('valueObjects.Sex');
+
+export type entityType = {
+  Soldier : string,
+  Civilian : string,
+  GoalUser : string,
+  External: string,
+}
+
+export const entityTypes: entityType = config.get('valueObjects.EntityType');
+
+// TODO: move into utils generic
+const getEntityByValue = (entityTypeValue: string): keyof entityType => {
+  return Object.keys(entityTypes).find((key) => entityTypes[key as keyof entityType] === entityTypeValue) as keyof entityType;
+}
+
+const isEntityType = isFromArray(Object.values(entityTypes));
+const isSexType = isFromArray(Object.values(sexTypes));
+
+export const castToEntityType = (val: string): Result<string, string> => {
+  if (isEntityType(val)) {
+    return ok(val);
+  }
   return err(`${val} is invalid EntityType`);
-}
+};
 
-export enum Sex {
-  Male = 'male',
-  Female = 'female'
-}
-const isSex = isSomeEnum(Sex);
-export const castToSex = (val: string): Result<Sex, string> => {
-  if(isSex(val)) { return ok(val); }
+
+export const castToSex = (val: string): Result<string, string> => {
+  if (isSexType(val)) {
+    return ok(val);
+  }
   return err(`${val} is invalid Sex`);
-}
-
+};
 
 // type CommonEntityProps = {
 //   firstName: string;
 //   entityType: EntityType;
 //   hierarchy?: Hierarchy;
-//   clearance?: number; // value object
+//   clearance?: string; // value object
 //   mail?: string; //value object, should be required??
 //   jobTitle?: string;
 // }
@@ -75,34 +100,42 @@ export const castToSex = (val: string): Result<Sex, string> => {
 //   personalNumber?: string;
 // }
 
-// // type EntityState = CommonEntityProps & 
-// //   Partial<PersonProps> & 
-// //   Partial<CivilianEntityProps> & 
+// // type EntityState = CommonEntityProps &
+// //   Partial<PersonProps> &
+// //   Partial<CivilianEntityProps> &
 // //   Partial<SoldierEntityProps>
 
 // type CreateSoldierProps = CommonEntityProps & PersonProps & SoldierEntityProps;
 // type CreateCivilianProps = CommonEntityProps & PersonProps & CivilianEntityProps;
 
-type PictureData = {
-  path: string;
-  updatedAt?: Date;
-  createdAt: Date;
+type ProfilePicture = {
+  meta: {
+    path: string;
+    format: string;
+    updatedAt?: Date;
+  }
 }
+
+export type Pictures = {
+  profile?: ProfilePicture
+};
 
 type EntityState = {
   firstName: string;
   lastName?: string;
-  entityType: EntityType;
+  entityType: string; // TODO: make entityType, sex valueObjects
   displayName?: string; // TODO maybe remove thid field
   personalNumber?: PersonalNumber;
   identityCard?: IdentityCard;
+  employeeNumber?: EmployeeNumber;
   rank?: Rank;
   akaUnit?: string;
-  clearance?: number; // value object
+  organization?: Organization;
+  clearance?: string; // value object
   mail?: Mail;
-  sex?: Sex;
-  serviceType?: ServiceType; 
-  dischargeDate?: Date;
+  sex?: string;
+  serviceType?: ServiceType;
+  dischargeDay?: Date;
   birthDate?: Date;
   jobTitle?: string;
   address?: string; // value?
@@ -110,76 +143,100 @@ type EntityState = {
   mobilePhone?: UniqueArray<MobilePhone>; //value object
   goalUserId?: DigitalIdentityId;
   primaryDigitalIdentityId?: DigitalIdentityId;
-  profilePicture?: PictureData;
-}
+  pictures?: Pictures;
+};
 
-type CreateEntityProps = Omit<EntityState, 'mail' | 'primaryDigitalIdentity'>;
+type CreateEntityProps = Omit<EntityState, "mail" | "primaryDigitalIdentity">;
 
-
-// type CreatePersonProps = 
+// type CreatePersonProps =
 //   Required<Pick<EntityState, 'firstName' | 'lastName'>> &
-//   Partial<Pick<EntityState, 'clearance' | 'phone' | 'mobilePhone' | 'address' 
+//   Partial<Pick<EntityState, 'clearance' | 'phone' | 'mobilePhone' | 'address'
 //     | 'sex' | 'serviceType' | 'dischargeDate' | 'birthDate' | 'rank' | 'akaUnit'
 //     | 'identityCard' | 'personalNumber'>>;
 // type CreateSoldierProps = CreatePersonProps & Required<Pick<EntityState, 'personalNumber'>>;
 // type CreateCivilianProps = CreatePersonProps & Required<Pick<EntityState, 'identityCard'>>;
-// type CreateGoalUserProps = 
+// type CreateGoalUserProps =
 //   Required<Pick<EntityState, 'firstName' | 'goalUserId'>> &
 //   Partial<Pick<EntityState, 'phone' | 'mobilePhone' | 'address' | 'clearance' | 'lastName'>>
 
+const REQUIRED_COMMON_FIELDS: (keyof EntityState)[] = [
+  "firstName",
+  "entityType",
+];
 
-const REQUIRED_COMMON_FIELDS: (keyof EntityState)[] = ['firstName', 'entityType'];
-
-// type PersonState = 
+// type PersonState =
 //   CommonState &
 //   Required<Pick<EntityState, 'lastName' | 'serviceType'>> &
 //   Pick<EntityState, 'sex' | 'address' | 'dischargeDate' | 'birthDate' | 'phone' | 'mobilePhone'>;
 
-const REQUIRED_PERSON_FIELDS: (keyof EntityState)[] = ['firstName', 'lastName', 'serviceType'];
+const REQUIRED_PERSON_FIELDS: (keyof EntityState)[] = [
+  "firstName",
+  // "lastName",
+  // "serviceType",
+];
 
-// type SoldierState = 
-//   PersonState & 
-//   Required<Pick<EntityState, 'personalNumber'>> & 
+// type SoldierState =
+//   PersonState &
+//   Required<Pick<EntityState, 'personalNumber'>> &
 //   Pick<EntityState, 'rank' | 'identityCard' | 'akaUnit'>;
 
-// type CivilianState = 
-//   PersonState & 
-//   Required<Pick<EntityState, 'identityCard'>> &  
+// type CivilianState =
+//   PersonState &
+//   Required<Pick<EntityState, 'identityCard'>> &
 //   Pick<EntityState, 'personalNumber' | 'rank'>;
 
-  
 const ENTITY_TYPE_VALID_STATE: {
-[k in EntityType]: {
-  required: (keyof EntityState)[],
-  forbidden: (keyof EntityState)[],
-}
+  [Property in keyof entityType]: {
+    required: (keyof EntityState)[];
+    forbidden: (keyof EntityState)[];
+  };
 } = {
-  [EntityType.Civilian]: {
-    required: [...REQUIRED_PERSON_FIELDS, 'identityCard'],
-    forbidden: ['goalUserId'],
+  Civilian: {
+    required: [...REQUIRED_PERSON_FIELDS, "identityCard"],
+    forbidden: ["goalUserId"],
   },
-  [EntityType.Soldier]: {
-    required: [...REQUIRED_PERSON_FIELDS, 'personalNumber'],
-    forbidden: ['goalUserId'],
+  Soldier: {
+    required: [...REQUIRED_PERSON_FIELDS, "personalNumber"],
+    forbidden: ["goalUserId", "employeeNumber"],
   },
-  [EntityType.GoalUser]: {
-    required: ['firstName', 'goalUserId'],
-    forbidden: ['identityCard', 'rank', 'serviceType', 'sex', 'address', 'dischargeDate', 'birthDate'],
+  GoalUser: {
+    required: ["firstName", "goalUserId"],
+    forbidden: [
+      "identityCard",
+      "employeeNumber",
+      "rank",
+      "serviceType",
+      "sex",
+      "address",
+      "dischargeDay",
+      "birthDate",
+    ],
+  },
+  External: {
+    required: ["firstName", "employeeNumber", "organization"],
+    forbidden: [
+      "identityCard",
+      "personalNumber",
+    ],
   },
 };
 
-const SET_ONLY_ONCE_FIELDS = new Set(['sex', 'identityCard', 'personalNumber', 'birthDate'] as (keyof EntityState)[]);
+const SET_ONLY_ONCE_FIELDS = new Set([
+  // "sex",
+  // "identityCard",
+  // "personalNumber",
+  // "birthDate",
+] as (keyof EntityState)[]);
 
-type UpdateDto = Partial<Omit<EntityState, 'displayName' | 'profilePicture'>>;
+type UpdateDto = Partial<Omit<EntityState, "displayName" | "profilePicture">>;
 export type UpdateResult = Result<
   void,
-  IllegalEntityStateError |
-  CannotChangeEntityTypeError |
-  AppError.CannotUpdateFieldError
->
+  | IllegalEntityStateError
+  | CannotChangeEntityTypeError
+  | AppError.CannotUpdateFieldError
+>;
 
 export class Entity extends AggregateRoot {
- 
   private _state: EntityState;
 
   private constructor(id: EntityId, props: EntityState, opts: CreateOpts) {
@@ -195,94 +252,123 @@ export class Entity extends AggregateRoot {
    * //TODO: are undefined fields should be ignored?
    * //TODO: probably should break this into many small update methods like 'updatePictureData' below
    * phone should override or add ?
-   * @param updateDto 
+   * @param updateDto
    */
   public updateDetails(updateDto: UpdateDto): UpdateResult {
     // check if the key is readonly and already has been set
-    for(const f of Object.keys(updateDto)) {
-      if (
-        f in SET_ONLY_ONCE_FIELDS && 
-        has(this._state, f as keyof UpdateDto)
-      ){
+    for (const f of Object.keys(updateDto)) {
+      if (SET_ONLY_ONCE_FIELDS.has(f as keyof UpdateDto) && this._state[f as keyof UpdateDto ]) {
         return err(AppError.CannotUpdateFieldError.create(f));
       }
     }
     // check for illegal 'entityType' transition
-    if(
-      has(updateDto, 'entityType') &&
-      !Entity.isValidEntityTypeTransition(this._state.entityType, updateDto.entityType)
+    if (
+      has(updateDto, "entityType") &&
+      !Entity.isValidEntityTypeTransition(
+        this._state.entityType,
+        updateDto.entityType
+      )
     ) {
-      return err(CannotChangeEntityTypeError.create(this._state.entityType, updateDto.entityType));
+      return err(
+        CannotChangeEntityTypeError.create(
+          this._state.entityType,
+          updateDto.entityType
+        )
+      );
     }
     const newState = { ...this._state, ...updateDto };
     const isValid = Entity.isValidEntityState(newState);
-    if(isValid.isOk()) {
+    if (isValid.isOk()) {
       this._state = newState;
     }
     this.markModified();
     return isValid;
   }
 
-  public updatePictureData(update: Partial<PictureData>): Result<void, IllegalEntityStateError> {
-    const pictureData = { ...this._state.profilePicture, ...update };
+  public updateProfilePicture(
+    update: ProfilePicture
+  ): Result<void, IllegalEntityStateError> {
+    if (!this._state.pictures) { 
+      this._state.pictures = {};
+    }
+    const profile = { ...this._state.pictures.profile, ...update };
     // update only if the resulting data has the required keys
-    if(hasAll(pictureData, ['path', 'createdAt'])) {
-      this._state.profilePicture = pictureData;
+    if (hasAll(profile , ["meta"])) {
+      this._state.pictures.profile = update;
       this.markModified();
       return ok(undefined);
     }
-    return err(IllegalEntityStateError.create('illegal picture data update'));
+    return err(IllegalEntityStateError.create("illegal picture data update"));
   }
 
-  private static isValidEntityState(state: EntityState): 
-    Result<void, IllegalEntityStateError> {
+  private static isValidEntityState(
+    state: EntityState
+  ): Result<void, IllegalEntityStateError> {
     // entity has all common required fields
-    for(const k of REQUIRED_COMMON_FIELDS) {
-      if(!has(state, k)) {
-        return err(IllegalEntityStateError.create(`entity missing required field: ${k}`));
+    for (const k of REQUIRED_COMMON_FIELDS) {
+      if (!has(state, k)) {
+        return err(
+          IllegalEntityStateError.create(`entity missing required field: ${k}`)
+        );
       }
     }
     // entity has all required fields for it's type
-    const { required, forbidden } = ENTITY_TYPE_VALID_STATE[state.entityType]
-    for(const k of required) {
-      if(!has(state, k)) {
-        return err(IllegalEntityStateError.create(`${state.entityType} missing required field: ${k}`));
+    const { required, forbidden } = ENTITY_TYPE_VALID_STATE[getEntityByValue(state.entityType)];
+    for (const k of required) {
+      if (!has(state, k)) {
+        return err(
+          IllegalEntityStateError.create(
+            `${state.entityType} missing required field: ${k}`
+          )
+        );
       }
     }
     // entity ***
-    for(const k of forbidden) {
-      if(has(state, k)) {
-        return err(IllegalEntityStateError.create(`${state.entityType} cannot have field: ${k}`));
+    for (const k of forbidden) {
+      if (has(state, k)) {
+        return err(
+          IllegalEntityStateError.create(
+            `${state.entityType} cannot have field: ${k}`
+          )
+        );
       }
     }
     // specific Rules:
     // goalUserId must equal PrimaryDigitalIdentityId when both are defined
-    if(state.entityType === EntityType.GoalUser) {
-      if(
-        !!state.goalUserId && 
+    if (state.entityType === entityTypes.GoalUser) {
+      if (
+        !!state.goalUserId &&
         !!state.primaryDigitalIdentityId &&
-        ~state.goalUserId.equals(state.primaryDigitalIdentityId)
+        !state.goalUserId.equals(state.primaryDigitalIdentityId)
       ) {
-        return err(IllegalEntityStateError.create(
-          `goalUserId must be the same as primaryDigitalIdentityId`));
+        return err(
+          IllegalEntityStateError.create(
+            `goalUserId must be the same as primaryDigitalIdentityId`
+          )
+        );
       }
     }
     return ok(undefined);
   }
 
-  private static isValidEntityTypeTransition(from: EntityType, to: EntityType): boolean {
+  private static isValidEntityTypeTransition(
+    from: string,
+    to: string
+  ): boolean {
     if (
-      from !== to && (
-      from === EntityType.GoalUser ||
-      to === EntityType.GoalUser)
+      from !== to &&
+      (from === entityTypes.GoalUser || to === entityTypes.GoalUser)
     ) {
       return false;
     }
     return true;
   }
 
-
-  static _create(id: EntityId, state: EntityState, opts: CreateOpts): Result<Entity, IllegalEntityStateError> {
+  static _create(
+    id: EntityId,
+    state: EntityState,
+    opts: CreateOpts
+  ): Result<Entity, IllegalEntityStateError> {
     const isValid = Entity.isValidEntityState(state);
     if (isValid.isOk()) {
       return ok(new Entity(id, state, opts));
@@ -294,26 +380,103 @@ export class Entity extends AggregateRoot {
     return Entity._create(id, props, { isNew: true });
   }
 
+  // public connectDI(digitalIdentity: IConnectedDI) {
+  //   const isAlreadyConnected = this._state.connectedDIs?.map(di => di.uniqueId.toString()).includes(digitalIdentity.uniqueId.toString());
+  //   if (isAlreadyConnected) return; //TODO: is error?
+  //   this._state.connectedDIs?.push(digitalIdentity);
+  //   this.choosePrimaryDigitalIdentity()
+  //   this.markModified();
+  //   return ok(undefined);
+  // }
+
+  // public disconnectDI(digitalIdentity: IConnectedDI) {
+  //   const existsIndex = this._state.connectedDIs?.map(di => di.uniqueId.toString()).indexOf(digitalIdentity.uniqueId.toString());
+  //   if (!existsIndex) return; //TODO: is error?
+  //   this._state.connectedDIs?.splice(existsIndex, 1);
+  //   this.choosePrimaryDigitalIdentity()
+  //   this.markModified();
+  //   return ok(undefined);
+  // }
+
+  public choosePrimaryDigitalIdentity(
+    connectedDIs: DigitalIdentityRepresent[]
+  ) {
+    const connected = connectedDIs;
+    // no connected DIs, set primary to undefined
+    if (connected.length === 0) {
+      return undefined;
+    }
+    // check if current primary has the strongest source
+    let currentPrimary = connected.find((di) =>
+      di.uniqueId.equals(this._state.primaryDigitalIdentityId)
+    );
+    if (
+      !!currentPrimary &&
+      PrimaryDigitalIdentityService.haveStrongSource(currentPrimary)
+    ) {
+      return;
+    }
+    // find if one of the other DIs has the strongest source
+    const strongSourceDI = connected.find(
+      PrimaryDigitalIdentityService.haveStrongSource
+    );
+    if (!!strongSourceDI) {
+      this._state.primaryDigitalIdentityId = strongSourceDI.uniqueId;
+    }
+    // check for primary source DI (and the current primary has not)
+    const primarySourceDI = connected.find((di) =>
+      PrimaryDigitalIdentityService.havePrimarySource(this._state.akaUnit, di)
+    );
+    if (
+      (!currentPrimary ||
+        !PrimaryDigitalIdentityService.havePrimarySource(
+          this._state.akaUnit,
+          currentPrimary
+        )) &&
+      !!primarySourceDI
+    ) {
+      this._state.primaryDigitalIdentityId = primarySourceDI.uniqueId;
+      return;
+    }
+    // connect one of the DIs // TODO: check if has hierarchy?
+    if (!currentPrimary || PrimaryDigitalIdentityService.isWeakSource(currentPrimary)) {
+      this._state.primaryDigitalIdentityId = connected.find(di => !PrimaryDigitalIdentityService.isWeakSource(di))?.uniqueId;
+    } 
+    // else, the current primary
+  }
+  /* 
+  happens on:
+    - Role connecting / disconneting to DI
+    - DI connecting / disconneting to Entity
+    - Group moving to new Parent 
+    - Role moving to new parent group
+  (Entity , DI, Role) =>
+    if DI is primary of Entity {
+      entity.hierarchy = Role.hierarchy
+      entity.X = Role.X
+    }
+  */
+
   // static createSoldier(id: EntityId, props: CreateSoldierProps) {
   //   return Entity.create(
-  //     id, 
-  //     { ...props, entityType: EntityType.Soldier }, 
+  //     id,
+  //     { ...props, entityType: EntityType.Soldier },
   //     { isNew: true }
   //   );
   // }
 
   // static createCivilian(id: EntityId, props: CreateCivilianProps) {
   //   return Entity.create(
-  //     id, 
-  //     { ...props, entityType: EntityType.Civilian }, 
+  //     id,
+  //     { ...props, entityType: EntityType.Civilian },
   //     { isNew: true }
   //   );
   // }
 
   // static createGoalUser(id: EntityId, props: CreateGoalUserProps) {
   //   return Entity.create(
-  //     id, 
-  //     { ...props, entityType: EntityType.GoalUser }, 
+  //     id,
+  //     { ...props, entityType: EntityType.GoalUser },
   //     { isNew: true }
   //   );
   // }
@@ -324,8 +487,8 @@ export class Entity extends AggregateRoot {
   get name() {
     return {
       firstName: this._state.firstName,
-      lastName: this._state.lastName
-    }
+      lastName: this._state.lastName,
+    };
   }
   get entityType() {
     return this._state.entityType;
@@ -336,9 +499,17 @@ export class Entity extends AggregateRoot {
   get identityCard() {
     return this._state.identityCard;
   }
+  get employeeNumber() {
+    return this._state.employeeNumber;
+  }
   get rank() {
     return this._state.rank;
   }
+
+  get organization() {
+    return this._state.organization;
+  }
+
   get akaUnit() {
     return this._state.akaUnit;
   }
@@ -351,8 +522,8 @@ export class Entity extends AggregateRoot {
   get serviceType() {
     return this._state.serviceType;
   }
-  get dischargeDate() {
-    return this._state.dischargeDate;
+  get dischargeDay() {
+    return this._state.dischargeDay;
   }
   get birthDate() {
     return this._state.birthDate;
@@ -381,9 +552,11 @@ export class Entity extends AggregateRoot {
   get primaryDigitalIdentityId() {
     return this._state.primaryDigitalIdentityId;
   }
-  get profilePicture() {
-    return this._state.profilePicture;
+
+  get pictures() {
+    return this._state.pictures;
   }
+
   // get hierarchy() {
   //   return this._state.hierarchy?.value();
   // }

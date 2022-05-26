@@ -12,5 +12,6 @@ router.put('/:roleId/digitalIdentity/:digitalIdentityUniqueId',
   roleController.connectDigitalIdentity);
 router.delete('/:roleId/digitalIdentity/:digitalIdentityUniqueId', 
   roleController.disconnectDigitalIdentity);
+router.delete('/:roleId', roleController.deleteRole)
 
 export default router;

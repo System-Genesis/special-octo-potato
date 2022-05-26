@@ -30,6 +30,7 @@ export abstract class ErrorResponseHandler {
    * @returns 
    */
   static defaultErrorHandler(res: Response, err: BaseError, opts: DefaultHandlerOpts = {}) {
+    console.log(err)
     if(err instanceof AppError.RetryableConflictError) {
       return ResponseHandler.conflict(res);
     } else if (err instanceof AppError.ResourceNotFound) {
@@ -42,7 +43,9 @@ export abstract class ErrorResponseHandler {
       }
     } else if (err instanceof AppError.UnexpectedError) {
       return ResponseHandler.fail(res, err.message);
-    }
+    } else if (err instanceof AppError.AlreadyExistsError) {
+    return ResponseHandler.clientError(res, err.message, err.identifier);
+  }
     // the default is client error
     return ResponseHandler.clientError(res, err.message);
   }

@@ -37,6 +37,15 @@ export namespace AppError {
     }
   }
 
+  export class LogicError extends BaseError {
+    private constructor(msg: string) {
+      super(msg);
+    }
+    static create(msg: string) {
+      return new LogicError(msg);
+    }
+  }
+
   export class ResourceNotFound extends BaseError {
     private _resource: string;
 
@@ -51,6 +60,23 @@ export namespace AppError {
 
     static create(resource: string, resourceType: string = '') {
       return new ResourceNotFound(resource, resourceType);
+    }
+  }
+
+  export class AlreadyExistsError extends BaseError {
+    private _idDetail: Object;
+
+    private constructor(object: string, idDetail: Object) {
+      super(`${object} already exists`);
+      this._idDetail = idDetail;
+    }
+
+    get identifier() {
+      return this._idDetail;
+    }
+
+    static create(object: string, idDetail: Object) {
+      return new AlreadyExistsError(object, idDetail);
     }
   }
 

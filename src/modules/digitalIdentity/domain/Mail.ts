@@ -1,6 +1,6 @@
 import { Result, err, ok } from "neverthrow";
 
-const re =  new RegExp('.+@.+', 'gi');
+const re =  new RegExp('^.+@.+$', 'i');
 
 export class Mail {
   private constructor(

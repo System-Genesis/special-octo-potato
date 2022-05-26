@@ -6,9 +6,11 @@ export interface GroupDoc {
   name: string;
   // ancestors: Types.ObjectId[];
   // hierarchy: string;
-  directGroup?: Types.ObjectId;
+  directGroup?: Types.ObjectId | null; // TODO: is it ok null?
   status?: string;
+  diPrefix?: string;
   akaUnit?: string;
+  isLeaf: boolean;
   version: number;
 }
 
@@ -18,6 +20,8 @@ const schema = new Schema<GroupDoc, Model<GroupDoc>, GroupDoc> ({
   // hierarchy: String,
   status: String,
   akaUnit: String,
+  diPrefix: String,
+  isLeaf: Boolean,
   // ancestors: [Schema.Types.ObjectId],
   directGroup: Schema.Types.ObjectId,
   version: Number,
@@ -27,6 +31,11 @@ const schema = new Schema<GroupDoc, Model<GroupDoc>, GroupDoc> ({
 });
 
 // ensure name is unique under the same parent group
-schema.index({ directGroup: 1, name: 1 }, { unique: true });
+schema.index({ name: 1, directGroup: 1} , {unique: true} ); 
+// schema.index({ name: 1 }); 
+// schema.index({ source: 1 })
+schema.index({ directGroup: 1 })
+// schema.index({ akaUnit: 1 })
+// schema.index({ status: 1 })
 
 export default schema;

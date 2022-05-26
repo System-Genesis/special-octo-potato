@@ -6,11 +6,11 @@ import config from "config";
 const domains: string[] = config.get('valueObjects.digitalIdentityId.domain.values');
 // replace dot special character with literal dot
 const escapedDomains = domains.map(s => s.replace('.', '\\.'));
-const re = new RegExp(`.+@(${escapedDomains.join('|')})`, 'gi');
+const re = new RegExp(`^.+@(${escapedDomains.join('|')})$`, 'i');
 
 export class DigitalIdentityId extends UniqueEntityId {
   private constructor(id: string) {
-    super(id);
+    super(id.toLowerCase());
   }
 
   private static isValid(id: string) {

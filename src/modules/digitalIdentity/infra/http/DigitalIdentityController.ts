@@ -8,6 +8,9 @@ import {
   joiSchema as CreateDigitalIdentitySchema
 } from "../../useCases/dtos/CreateDigitalIdentityDTO"
 import {
+  joiSchema as DeleteDigitalIdentitySchema
+} from "../../useCases/dtos/DeleteDigitalIdentityDTO"
+import {
   UpdateDigitalIdentityDTO,
   joiSchema as UpdateDigitalIdentitySchema
 } from "../../useCases/dtos/UpdateDigitalIdentityDTO";
@@ -29,7 +32,7 @@ export class DigitalIdentityController {
     if(result.isErr()) {
       return ErrorResponseHandler.defaultErrorHandler(res, result.error);
     }
-    return ResponseHandler.ok(res);
+    return ResponseHandler.ok(res, result.value);
   }
 
   /**
@@ -49,5 +52,15 @@ export class DigitalIdentityController {
     }
     return ResponseHandler.ok(res);
   }
+  deleteDigitalIdentity = async (req: Request, res: Response)=>{
+    const {error} = DeleteDigitalIdentitySchema.validate({uniqueId: req.params.uniqueId})
+    if(!!error) {
+      return ResponseHandler.clientError(res, error.message);
+    }
+    const result = await this._diService.deleteDigitalIdentity(req.params.uniqueId);
+    if(result.isErr()) {
+      return ErrorResponseHandler.defaultErrorHandler(res, result.error);
+    }
+    return ResponseHandler.ok(res);
+  }
 }
-// TODO route for delete

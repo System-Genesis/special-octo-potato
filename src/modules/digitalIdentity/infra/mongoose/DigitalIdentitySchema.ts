@@ -1,11 +1,12 @@
+import { DigitalIdentityTypes } from './../../domain/DigitalIdentity';
 import { Schema, Model, Types, model } from 'mongoose';
-import { DigitalIdentityType } from '../../domain/DigitalIdentity';
 
 export interface DigitalIdentityDoc {
   uniqueId: string;
-  type: DigitalIdentityType;
+  type: string;
   source: string; // enum?
   mail?: string; 
+  upn?: string;
   isRoleAttachable?: boolean;
   entityId?: Types.ObjectId;
   version: number;
@@ -16,8 +17,9 @@ const schema = new Schema<DigitalIdentityDoc, Model<DigitalIdentityDoc>, Digital
   entityId: { type: Schema.Types.ObjectId, ref: () => 'Entity' }, // TODO: model names provider?
   type: { 
     type: String,
-    enum: [ DigitalIdentityType.DomainUser, DigitalIdentityType.Kaki ],
+    enum: [ DigitalIdentityTypes.DomainUser, DigitalIdentityTypes.VirtualUser ],
   },
+  upn: String,
   source: String,
   mail: String,
   isRoleAttachable: Boolean,
@@ -26,5 +28,10 @@ const schema = new Schema<DigitalIdentityDoc, Model<DigitalIdentityDoc>, Digital
   versionKey: false,
   timestamps: true,
 });
+
+schema.index({ entityId: 1 })
+// schema.index({ source: 1 })
+// schema.index({ mail: 1 })
+// schema.index({ isRoleAttachable: 1 })
 
 export default schema;

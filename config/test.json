@@ -1,0 +1,60 @@
+{
+  "valueObjects": {
+    "source": {
+      "values": ["oa_name","es_name","sf_name", "aka", "adNN_name", "city_name", "mir_name", "ads_name"], 
+      "strongSources": ["oa_name"],
+      "upnSource": "ads_name",
+      "weakSource": ["mir_name"],
+      "primaryMap": {
+        "ads": "sf_name",
+        "unit2": "es"
+      }
+    },
+    "rank": {
+      "values": ["unknown", "rookie", "champion", "ultimate"]
+    },
+    "serviceType": {
+      "values": ["A", "B", "C", "D", "E", "F", "G"]
+    },
+    "digitalIdentityId": {
+      "domain": {
+        "values": ["rabiran.com", "jello.com", "adnn.com", "leonardo.com", "city.com", "turtle.com", "rafael.turtle.com"]
+      }
+    },
+    "roleIdSuffixes": {
+      "domain": {
+        "values": ["rabiran", "jello", "adnn", "leonardo", "city", "turtle", "rafael.turtle.com"]
+      }
+    },
+    "EntityType": {
+      "Soldier" : "agumon",
+      "Civilian" : "digimon",
+      "GoalUser" : "tamar"
+    },
+    "Sex": {
+      "Male" : "male",
+      "Female" : "female"
+    },
+    "digitalIdentityType": {
+      "DomainUser" : "domainUser",
+      "VirtualUser" : "virtualUser" 
+    }
+  },
+  "db": {
+    "mongo": {
+      "connectionString": "mongodb://localhost:27017/octo?replicaSet=rs0&directConnection=true&ssl=false",
+      "poolSize": 10,
+      "modelNames": {
+        "group": "Group",
+        "digitalIdentity": "DigitalIdentity",
+        "entity": "Entity",
+        "role": "Role",
+        "eventOutbox": "EventMessage"
+      }
+    }
+  },
+  "server": {
+    "port": 4001
+  },
+  "NODE_ENV": "test"
+}

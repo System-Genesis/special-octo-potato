@@ -28,12 +28,12 @@ export const outboxMessageSchema = new Schema<OutboxMessage, Model<OutboxMessage
   payload: {},
 }, options);
 
-const modelName = 'eventMessage'; // TODO: get name from config
 
 export class EventOutbox {
   private _model: Model<OutboxMessage>;
 
-  constructor(db: Connection) {
+  constructor(db: Connection, config: { modelName: string }) {
+    const { modelName } = config;
     if(db.modelNames().includes(modelName)) {
       this._model = db.model(modelName); 
     } else {

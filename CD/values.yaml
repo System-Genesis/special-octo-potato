@@ -1,0 +1,19 @@
+name: "write-service"
+replicaCount: 1
+
+images:
+  PullSecrets: 
+    name: kartoffelreg
+  repository: genesisproject.azurecr.io/write-service
+  tag: "latest"
+
+volume:
+  - name: write-service-volume
+    mountPath: /dist/config
+    secretName: azure-secret 
+    shareName: system-genesis/write-service
+    type: azurefile 
+    
+config:
+  configmaps: 
+    name: write-service

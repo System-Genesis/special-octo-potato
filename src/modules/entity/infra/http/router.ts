@@ -9,5 +9,7 @@ router.post('/', entityController.createEntity);
 router.patch('/:id', entityController.updateEntity);
 router.put('/:id/digitalIdentity/:uniqueId', entityController.connectDigitalIdentity);
 router.delete('/:id/digitalIdentity/:uniqueId', entityController.disconnectDigitalIdentity);
+router.delete('/:id', entityController.deleteEntity)
+
 
 export default router;

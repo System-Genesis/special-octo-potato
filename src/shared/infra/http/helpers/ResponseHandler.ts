@@ -10,12 +10,13 @@ export abstract class ResponseHandler {
     }
   }
 
-  static jsonResponse(res: Response, code: number, message: string) {
-    return res.status(code).json({ message });
+  static jsonResponse(res: Response, code: number, message: string, detail?: any) {
+    console.log(message)
+    return res.status(code).json({ message, ...detail });
   }
 
-  static clientError(res: Response, message?: string) {
-    return this.jsonResponse(res, 400, message || 'Bad Request');
+  static clientError(res: Response, message?: string, detail?: any) {
+    return this.jsonResponse(res, 400, message || 'Bad Request', detail || {});
   }
 
   static notFound(res: Response, message?: string) {

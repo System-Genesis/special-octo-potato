@@ -7,5 +7,6 @@ const router = Router();
 
 router.post('/', diController.createDigitalIdentity);
 router.patch('/:id', diController.updateDigitalIdentity);
+router.delete('/:uniqueId',diController.deleteDigitalIdentity);
 
 export default router;
