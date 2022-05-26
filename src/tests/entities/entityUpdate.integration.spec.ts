@@ -57,8 +57,8 @@ export const testUpdateEntity = () => {
                 personalNumber: '123456',
                 phone: '09-8651414',
                 mobilePhone: '054-7340538',
-                clearance: '300',
-                externalClearance: '300',
+                clearance: '3',
+                fullClearance: '300',
                 serviceType: serviceTypes[1],
                 pictures: {
                     profile: {
@@ -95,7 +95,7 @@ export const testUpdateEntity = () => {
                     personalNumber: '123456',
                     phone: '09-8651414',
                     mobilePhone: '054-7340538',
-                    externalClearance: '400',
+                    fullClearance: '400',
                     serviceType: serviceTypes[1],
                     pictures: {
                         profile: {
@@ -121,7 +121,7 @@ export const testUpdateEntity = () => {
                         lastName: 'Afek',
                         identityCard: '326034246',
                         entityType: entityTypes.Soldier,
-                        externalClearance: '400',
+                        fullClearance: '400',
                         personalNumber: '123456',
                         phone: ['098651414'],
                         serviceType: serviceTypes[1],
@@ -164,7 +164,7 @@ export const testUpdateEntity = () => {
                     phone: null,
                     mobilePhone: null,
                     serviceType: null,
-                    externalClearance: null,
+                    fullClearance: null,
                     pictures: null,
                     rank: null,
                     sex: null,
