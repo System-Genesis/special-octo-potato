@@ -93,10 +93,6 @@ export class RoleService {
         if (!di) {
             return err(AppError.ResourceNotFound.create(connectDTO.digitalIdentityUniqueId, 'digitalIdentity UniqueId'));
         }
-        const diSource = di.source.value;
-        if (roleSource !== diSource) {
-            return err(SourceMisMatchError.create(roleSource, diSource));
-        }
         const res = role.connectDigitalIdentity(di);
         if (res.isErr()) {
             return err(res.error);
