@@ -205,7 +205,7 @@ const ENTITY_TYPE_VALID_STATE: {
     },
     External: {
         required: ['firstName', 'employeeNumber', 'organization'],
-        forbidden: ['identityCard', 'personalNumber', 'fullClearance'],
+        forbidden: ['identityCard', 'personalNumber'],
     },
 };
 

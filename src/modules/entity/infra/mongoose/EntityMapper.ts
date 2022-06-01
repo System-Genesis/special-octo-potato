@@ -27,8 +27,8 @@ export class EntityMapper {
             organization: entity.organization?.value,
             rank: entity.rank?.value,
             akaUnit: entity.akaUnit,
-            clearance: entity.clearance, // value object
-            fullClearance: entity.fullClearance, // value object
+            clearance: entity.clearance, 
+            fullClearance: entity.fullClearance, 
             mail: entity.mail?.value,
             sex: entity.sex,
             serviceType: entity.serviceType?.value,

@@ -67,7 +67,7 @@ export const testCreateEntity = () => {
                 rank: ranks[0],
                 sex: sexes.Male,
                 clearance: '3',
-                fullClearance: '300',
+                fullClearance: '003',
                 phone: '09-8651414',
                 mobilePhone: '054-7340538',
                 pictures: {
@@ -97,7 +97,7 @@ export const testCreateEntity = () => {
                         serviceType: serviceTypes[0],
                         rank: ranks[0],
                         clearance: '3',
-                        fullClearance: '300',
+                        fullClearance: '003',
                         sex: sexes.Male,
                         phone: ['098651414'],
                         mobilePhone: ['0547340538'],
