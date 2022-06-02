@@ -12,7 +12,8 @@ export interface EntityDoc {
     organization?: string;
     rank?: string; //use vale object / enum
     akaUnit?: string;
-    clearance?: string; // value object
+    clearance?: string;
+    fullClearance?: string;
     mail?: string; //value object
     sex?: string;
     serviceType?: string; //value object
@@ -49,7 +50,8 @@ const schema = new Schema<EntityDoc, Model<EntityDoc>, EntityDoc>(
         organization: { type: String, sparse: true },
         rank: String, //use vale object / enum
         akaUnit: String,
-        clearance: String, // value object
+        clearance: String, 
+        fullClearance: String,
         mail: String, //value object
         sex: String,
         serviceType: String, //value object

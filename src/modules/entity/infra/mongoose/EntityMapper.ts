@@ -27,7 +27,8 @@ export class EntityMapper {
             organization: entity.organization?.value,
             rank: entity.rank?.value,
             akaUnit: entity.akaUnit,
-            clearance: entity.clearance, // value object
+            clearance: entity.clearance, 
+            fullClearance: entity.fullClearance, 
             mail: entity.mail?.value,
             sex: entity.sex,
             serviceType: entity.serviceType?.value,
@@ -63,6 +64,7 @@ export class EntityMapper {
                     rank: !!raw.rank ? Rank.create(raw.rank)._unsafeUnwrap() : undefined,
                     akaUnit: raw.akaUnit,
                     clearance: raw.clearance,
+                    fullClearance: raw.fullClearance,
                     mail: !!raw.mail ? Mail.create(raw.mail)._unsafeUnwrap() : undefined,
                     sex: raw.sex,
                     serviceType: !!raw.serviceType ? ServiceType.create(raw.serviceType)._unsafeUnwrap() : undefined,
@@ -81,7 +83,7 @@ export class EntityMapper {
                               ...raw.pictures,
                           }
                         : undefined,
-                    createdAt: raw.createdAt,
+                    createdAt: raw.createdAt, // TODO: get rid of !! ? syntax
                 },
                 { isNew: false, savedVersion: raw.version },
             )._unsafeUnwrap();
