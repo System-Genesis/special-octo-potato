@@ -16,5 +16,6 @@ export const startApp = (async () => {
     }
     // starts the server
     // await import('./shared/infra/http/app');
+    // remove this comment
     return startServer();
 })();
