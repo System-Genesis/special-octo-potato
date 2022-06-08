@@ -7,6 +7,7 @@ const connString: string = config.get('db.mongo.connectionString');
 
 export const startApp = (async () => {
     try {
+        // console.log(connString);
         await pRetry(() => connectDB(connString), {
             onFailedAttempt: (err) => console.log(`[DB]: connection attempt ${err.attemptNumber} failed`),
         });
