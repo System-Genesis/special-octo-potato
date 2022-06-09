@@ -7,6 +7,12 @@ images:
   repository: genesisproject.azurecr.io/write-service
   tag: "latest"
 
+service:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    
 volume:
   - name: write-service-volume
     mountPath: /config
