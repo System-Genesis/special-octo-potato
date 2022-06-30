@@ -29,7 +29,7 @@ interface GroupState {
     ancestors?: GroupId[];
     status?: string;
     diPrefix?: string;
-    isLeaf?: boolean;
+    isLeaf: boolean;
     childrenNames?: Set<string>;
     createdAt?: Date;
 }
@@ -150,6 +150,7 @@ export class Group extends AggregateRoot implements IGroup {
                 akaUnit: props.akaUnit,
                 source: props.source,
                 diPrefix: props.diPrefix,
+                isLeaf: true,
             },
             { isNew: true },
         );
@@ -173,7 +174,7 @@ export class Group extends AggregateRoot implements IGroup {
     }
 
     static createRoot(groupId: GroupId, props: CreateGroupProps) {
-        return Group._create(groupId, props, { isNew: true });
+        return Group._create(groupId, { ...props, isLeaf: true }, { isNew: true });
     }
 
     static _create(groupId: GroupId, state: GroupState, opts: CreateOpts): Group {
