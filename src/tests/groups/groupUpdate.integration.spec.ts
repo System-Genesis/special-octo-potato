@@ -70,17 +70,21 @@ export const testUpdateGroup = () => {
                 source: es_name_source,
                 directGroup: esRes.body.id,
             };
-            const resCreate = await request(app).post(`/api/groups`).send(nikeGroup).expect(200);
-            const updateData = { name: 'adidas' };
-            const res = await request(app).patch(`/api/groups/${resCreate.body.id}/rename`).send(updateData).expect(200);
+            const nikeRes = await request(app).post(`/api/groups`).send(nikeGroup).expect(200);
+            // add child to check rename not becoming true (fix bug)
+            const adidasGroup = { name: 'adidas', source: es_name_source, directGroup: nikeRes.body.id };
+            const adidasRes = await request(app).post(`/api/groups`).send(adidasGroup).expect(200);
+            const updateData = { name: 'reebok' };
+            const res = await request(app).patch(`/api/groups/${nikeRes.body.id}/rename`).send(updateData).expect(200);
             foundNikeGroup = await findOneByQuery('groups', {
-                _id: Types.ObjectId(resCreate.body.id),
+                _id: Types.ObjectId(nikeRes.body.id),
             });
             expect(foundNikeGroup).toMatchObject({
-                name: 'adidas',
+                name: updateData.name,
                 source: es_name_source,
-                isLeaf: true,
+                isLeaf: false,
             });
+
         });
 
         it('cannot rename non exist group', async () => {
