@@ -55,7 +55,7 @@ export class Group extends AggregateRoot implements IGroup {
         this._source = state.source;
         this._status = state.status || 'active';
         this._diPrefix = state.diPrefix;
-        this._isLeaf = state.isLeaf || true;
+        this._isLeaf = state.isLeaf === undefined ? true : state.isLeaf;
         // this._hierarchy = state.hierarchy || Hierarchy.create('');
         this._ancestors = state.ancestors || [];
         this._childrenNames = state.childrenNames || new Set();
