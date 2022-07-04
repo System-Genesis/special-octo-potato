@@ -1,11 +1,11 @@
 import { BaseError } from '../../../../core/logic/BaseError';
 
 export class GoalUserIdAlreadyExistsError extends BaseError {
-    private constructor(goalUserId: string) {
-        super(`GoalUser Id: ${goalUserId} already belogns to another entity`);
+    private constructor(goalUserId: string, title: string) {
+        super(`GoalUser Id: ${goalUserId} already belogns to another entity`, title);
     }
 
-    static create(identityCard: string) {
-        return new GoalUserIdAlreadyExistsError(identityCard);
+    static create(goalUserId: string, title: string = 'GOALUSERID_ALREADY_EXISTS') {
+        return new GoalUserIdAlreadyExistsError(goalUserId, title);
     }
 }
